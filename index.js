@@ -6,7 +6,7 @@ var path = require("path");
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 const compression = require("compression");
-const winston = require('winston');
+const winston = require("winston");
 const cluster = require("cluster");
 const os = require("os");
 
@@ -62,6 +62,11 @@ if (cluster.isMaster) {
     app.use((req, res, next) => {
         logger.info(`Request received: ${req.method} ${req.url}`);
         next();
+    });
+
+    app.use((err, req, res, next) => {
+        logger.error(`Error occurred: ${err.message}`);
+        res.status(500).send("Something went wrong!");
     });
 
     app.use(
