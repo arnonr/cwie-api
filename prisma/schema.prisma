@@ -1,0 +1,548 @@
+// This is your Prisma schema file
+// learn more contact it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// กลุ่มผู้ใช้งาน เช่น 1. ผู้ดูแลระบบ 2. เจ้าหน้าที่อุทยานฯ 3. เจ้าหน้าที่คณะ 4.เจ้าหน้าท่ีภาค 5.เจ้าหน้าที่สาขา 6.อาจารย์ 7.นักศึกษา
+model user {
+    id            Int          @id @default(autoincrement())
+    uuID          String       @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    group_id      Int
+    group_detail  group        @relation(fields: [group_id], references: [id])
+    type_id       Int
+    status_id     Int
+    status_detail user_status  @relation(fields: [status_id], references: [id])
+    username      String       @unique
+    password      String?
+    name          String
+    citizen_id    String       @unique
+    phone         String?      @unique
+    email         String?      @unique
+    account_type  String
+    is_active     Boolean      @default(true)
+    created_at    DateTime     @default(now())
+    created_by    String?      @db.VarChar(255)
+    updated_at    DateTime     @updatedAt
+    updated_by    String?      @db.VarChar(255)
+    deleted_at    DateTime?
+    blocked_at    DateTime?
+    permissions   permission[]
+
+    teacher_profile teacher_profile? @relation("TeacherProfileToUser")
+    student_profile student_profile? @relation("StudentProfileToUser")
+    staff_profile   staff_profile?   @relation("StaffProfileToUser")
+
+    @@index([username], name: "idx_username")
+    @@index([username, deleted_at], name: "idx_username_deleted_at")
+}
+
+model permission {
+    id      Int    @id @default(autoincrement())
+    name    String
+    action  String
+    user_id Int
+    user    user   @relation(fields: [user_id], references: [id])
+}
+
+model user_status {
+    id         Int       @id @default(autoincrement())
+    name       String    @unique
+    is_active  Boolean   @default(true)
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
+    deleted_at DateTime?
+    user       user[]
+}
+
+model group {
+    id                Int                @id @default(autoincrement())
+    name              String             @unique
+    created_at        DateTime           @default(now())
+    updated_at        DateTime           @updatedAt
+    user              user[]
+    group_permissions group_permission[]
+}
+
+model group_permission {
+    id       Int    @id @default(autoincrement())
+    name     String
+    action   String
+    group_id Int?
+    group    group? @relation(fields: [group_id], references: [id])
+}
+
+model teacher_profile {
+    id                    Int               @id @default(autoincrement())
+    uuID                  String            @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    signature_file        String?
+    ExecutivePosition     String?
+    user_id               Int?              @unique
+    user                  user?             @relation(fields: [user_id], references: [id], name: "TeacherProfileToUser")
+    person_key            String
+    prefix                String?
+    firstname             String
+    surname               String
+    citizen_id            String            @db.VarChar(32)
+    phone                 String?           @db.VarChar(32)
+    email                 String?
+    address               String?           @db.Text
+    faculty_id            Int?
+    faculty_detail        faculty?          @relation(fields: [faculty_id], references: [id])
+    department_id         Int?
+    department_detail     department?       @relation(fields: [department_id], references: [id])
+    major_id              Int?
+    major_detail          major?            @relation(fields: [major_id], references: [id])
+    province_id           Int?
+    province_detail       province?         @relation(fields: [province_id], references: [id])
+    district_id           Int?
+    district_detail       district?         @relation(fields: [district_id], references: [id])
+    sub_district_id       Int?
+    sub_district_detail   sub_district?     @relation(fields: [sub_district_id], references: [id])
+    is_active             Boolean           @default(true)
+    created_at            DateTime          @default(now())
+    created_by            String?           @db.VarChar(255)
+    updated_at            DateTime          @updatedAt
+    updated_by            String?           @db.VarChar(255)
+    deleted_at            DateTime?
+    student_profile       student_profile[]
+    forms_as_visitor      form[]            @relation("visitorRelation") // Add this field
+    forms_as_major_head   form[]            @relation("majorHeadRelation") // Add this field
+    forms_as_faculty_head form[]            @relation("facultyHeadRelation") // Add this field
+
+    @@index([user_id], name: "idx_user_id")
+    @@index([faculty_id], name: "idx_faculty_id")
+    @@index([department_id], name: "idx_department_id")
+    @@index([major_id], name: "idx_major_id")
+    @@index([firstname, surname], name: "idx_fullname")
+    @@index([deleted_at, is_active], name: "idx_deleted_at_is_active")
+    @@index([deleted_at], name: "deleted_at")
+}
+
+model student_profile {
+    id      Int    @id @default(autoincrement())
+    uuID    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    user_id Int?   @unique
+    user    user?  @relation(fields: [user_id], references: [id], name: "StudentProfileToUser")
+
+    person_key          String
+    prefix              String?
+    firstname           String
+    surname             String
+    citizen_id          String           @db.VarChar(32)
+    phone               String?          @db.VarChar(32)
+    email               String?
+    address             String?          @db.Text
+    faculty_id          Int?
+    faculty_detail      faculty?         @relation(fields: [faculty_id], references: [id])
+    department_id       Int?
+    department_detail   department?      @relation(fields: [department_id], references: [id])
+    major_id            Int?
+    major_detail        major?           @relation(fields: [major_id], references: [id])
+    province_id         Int?
+    province_detail     province?        @relation(fields: [province_id], references: [id])
+    district_id         Int?
+    district_detail     district?        @relation(fields: [district_id], references: [id])
+    sub_district_id     Int?
+    sub_district_detail sub_district?    @relation(fields: [sub_district_id], references: [id])
+    student_code        String
+    class_year          String?
+    class_room          String?
+    advisor_id          Int?
+    advisor_detail      teacher_profile? @relation(fields: [advisor_id], references: [id])
+    GPA                 Decimal?         @db.Decimal(2, 2)
+    contact1_name       String?
+    contact1_relation   String?
+    contact1_phone      String?          @db.VarChar(32)
+    contact2_name       String?
+    contact2_relation   String?
+    contact2_phone      String?          @db.VarChar(32)
+    blood_group         String?
+    congenital_disease  String?          @db.Text
+    drug_allergy        String?          @db.Text
+    emergency_phone     String?          @db.VarChar(32)
+    Height              Decimal?         @db.Decimal(3, 2)
+    Weight              Decimal?         @db.Decimal(3, 2)
+    status_id           Int
+    status_detail       student_status?  @relation(fields: [status_id], references: [id])
+    photo_file          String?
+    is_active           Boolean          @default(true)
+    created_at          DateTime         @default(now())
+    created_by          String?          @db.VarChar(255)
+    updated_at          DateTime         @updatedAt
+    updated_by          String?          @db.VarChar(255)
+    deleted_at          DateTime?
+    form                form[]
+
+    @@index([user_id], name: "idx_student_user_id")
+    @@index([faculty_id], name: "idx_student_faculty_id")
+    @@index([department_id], name: "idx_student_department_id")
+    @@index([major_id], name: "idx_student_major_id")
+    @@index([advisor_id], name: "idx_student_advisor_id")
+    @@index([status_id], name: "idx_student_status_id")
+}
+
+model staff_profile {
+    id      Int    @id @default(autoincrement())
+    uuID    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    user_id Int?   @unique
+    user    user?  @relation(fields: [user_id], references: [id], name: "StaffProfileToUser")
+
+    person_key        String
+    prefix            String?
+    firstname         String
+    surname           String
+    citizen_id        String      @db.VarChar(32)
+    phone             String?     @db.VarChar(32)
+    email             String?
+    address           String?     @db.Text
+    faculty_id        Int?
+    faculty_detail    faculty?    @relation(fields: [faculty_id], references: [id])
+    department_id     Int?
+    department_detail department? @relation(fields: [department_id], references: [id])
+    major_id          Int?
+    major_detail      major?      @relation(fields: [major_id], references: [id])
+    is_active         Boolean     @default(true)
+    created_at        DateTime    @default(now())
+    created_by        String?     @db.VarChar(255)
+    updated_at        DateTime    @updatedAt
+    updated_by        String?     @db.VarChar(255)
+    deleted_at        DateTime?
+
+    @@index([user_id], name: "idx_staff_user_id")
+    @@index([faculty_id], name: "idx_staff_faculty_id")
+    @@index([department_id], name: "idx_staff_department_id")
+    @@index([major_id], name: "idx_staff_major_id")
+}
+
+model semester {
+    id         Int       @id @default(autoincrement())
+    uuID       String    @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    year       String    @db.VarChar(255)
+    term       String    @db.VarChar(255)
+    is_active  Boolean   @default(true)
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
+    deleted_at DateTime?
+    form       form[]
+}
+
+model company {
+    id                  Int           @id @default(autoincrement())
+    uuID                String        @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    name                String
+    phone               String?
+    email               String?
+    website             String?
+    blacklist           Boolean       @default(false)
+    comment             String?       @db.Text
+    namecard_file       String?
+    address             String?       @db.Text
+    province_id         Int?
+    province_detail     province?     @relation(fields: [province_id], references: [id])
+    district_id         Int?
+    district_detail     district?     @relation(fields: [district_id], references: [id])
+    sub_district_id     Int?
+    sub_district_detail sub_district? @relation(fields: [sub_district_id], references: [id])
+    is_active           Boolean       @default(true)
+    created_at          DateTime      @default(now())
+    created_by          String?       @db.VarChar(255)
+    updated_at          DateTime      @updatedAt
+    updated_by          String?       @db.VarChar(255)
+    deleted_at          DateTime?
+    form                form[]
+}
+
+model campus {
+    id         Int       @id @default(autoincrement())
+    code       String
+    name       String
+    is_active  Boolean   @default(true)
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
+    deleted_at DateTime?
+    faculty    faculty[]
+}
+
+model faculty {
+    id              Int               @id @default(autoincrement())
+    code            String
+    name            String
+    phone           String?
+    email           String?
+    campus_id       Int?
+    campus_detail   campus?           @relation(fields: [campus_id], references: [id])
+    is_active       Boolean           @default(true)
+    created_at      DateTime          @default(now())
+    created_by      String?           @db.VarChar(255)
+    updated_at      DateTime          @updatedAt
+    updated_by      String?           @db.VarChar(255)
+    deleted_at      DateTime?
+    teacher_profile teacher_profile[]
+    student_profile student_profile[]
+    staff_profile   staff_profile[]
+    department      department[]
+}
+
+model department {
+    id              Int               @id @default(autoincrement())
+    code            String
+    name            String
+    phone           String?
+    email           String?
+    faculty_id      Int?
+    faculty_detail  faculty?          @relation(fields: [faculty_id], references: [id])
+    is_active       Boolean           @default(true)
+    created_at      DateTime          @default(now())
+    created_by      String?           @db.VarChar(255)
+    updated_at      DateTime          @updatedAt
+    updated_by      String?           @db.VarChar(255)
+    deleted_at      DateTime?
+    teacher_profile teacher_profile[]
+    student_profile student_profile[]
+    staff_profile   staff_profile[]
+    major           major[]
+
+    @@index([faculty_id], name: "idx_department_faculty_id")
+}
+
+model major {
+    id                Int               @id @default(autoincrement())
+    code              String
+    name              String
+    phone             String?
+    email             String?
+    department_id     Int?
+    department_detail department?       @relation(fields: [department_id], references: [id])
+    is_active         Boolean           @default(true)
+    created_at        DateTime          @default(now())
+    created_by        String?           @db.VarChar(255)
+    updated_at        DateTime          @updatedAt
+    updated_by        String?           @db.VarChar(255)
+    deleted_at        DateTime?
+    teacher_profile   teacher_profile[]
+    student_profile   student_profile[]
+    staff_profile     staff_profile[]
+
+    @@index([department_id], name: "idx_major_department_id")
+}
+
+model document_type {
+    id          Int       @id @default(autoincrement())
+    name        String
+    description String?
+    is_active   Boolean   @default(true)
+    created_at  DateTime  @default(now())
+    created_by  String?   @db.VarChar(255)
+    updated_at  DateTime  @updatedAt
+    updated_by  String?   @db.VarChar(255)
+    deleted_at  DateTime?
+}
+
+model document {
+    id               Int       @id @default(autoincrement())
+    uuID             String    @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    student_id       Int
+    document_name    String
+    document_file    String?
+    document_type_id Int
+    is_active        Boolean   @default(true)
+    created_at       DateTime  @default(now())
+    created_by       String?   @db.VarChar(255)
+    updated_at       DateTime  @updatedAt
+    updated_by       String?   @db.VarChar(255)
+    deleted_at       DateTime?
+}
+
+model form {
+    id                            Int              @id @default(autoincrement())
+    uuID                          String           @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    student_id                    Int
+    student_detail                student_profile? @relation(fields: [student_id], references: [id])
+    company_id                    Int
+    company_detail                company?         @relation(fields: [company_id], references: [id])
+    semester_id                   Int
+    semester_detail               semester?        @relation(fields: [semester_id], references: [id])
+    visitor_id                    Int?
+    visitor_detail                teacher_profile? @relation("visitorRelation", fields: [visitor_id], references: [id])
+    major_head_id                 Int?
+    major_head_detail             teacher_profile? @relation("majorHeadRelation", fields: [major_head_id], references: [id])
+    faculty_head_id               Int?
+    faculty_head_detail           teacher_profile? @relation("facultyHeadRelation", fields: [faculty_head_id], references: [id])
+    form_status_id                Int
+    form_status_detail            form_status?     @relation(fields: [form_status_id], references: [id])
+    start_date                    DateTime?        @default(now()) @db.Date
+    end_date                      DateTime?        @default(now()) @db.Date
+    co_name                       String?
+    co_position                   String?
+    co_phone                      String?
+    co_email                      String?
+    request_name                  String?
+    request_position              String?
+    request_document_date         DateTime?        @db.Date
+    request_document_number       String?
+    max_respone_date              DateTime?        @db.Date
+    send_document_date            DateTime?        @db.Date
+    send_document_number          String?
+    response_document_file        String?
+    response_send_at              DateTime?        @db.Date
+    response_result               String?
+    response_province_id          Int?
+    response_province_detail      province?        @relation("responseProvinceRelation", fields: [response_province_id], references: [id])
+    confirm_response_at           DateTime?        @db.Date
+    workplace_address             String?          @db.Text
+    workplace_province_id         Int?
+    workplace_province_detail     province?        @relation("workplaceProvinceRelation", fields: [workplace_province_id], references: [id])
+    workplace_district_id         Int?
+    workplace_district_detail     district?        @relation("workplaceDistrictRelation", fields: [workplace_district_id], references: [id])
+    workplace_sub_district_id     Int?
+    workplace_sub_district_detail sub_district?    @relation("workplaceSubDistrictRelation", fields: [workplace_sub_district_id], references: [id])
+    workplace_googlemap_url       String?          @db.Text
+    workplace_googlemap_file      String?
+    plan_document_file            String?
+    plan_send_at                  DateTime?        @db.Date
+    plan_accept_at                DateTime?        @db.Date
+    advisor_verified_at           DateTime?        @db.Date
+    major_head_approved_at        DateTime?        @db.Date
+    faculty_head_approved_at      DateTime?        @db.Date
+    staff_confirmed_at            DateTime?        @db.Date
+    namecard_file                 String?
+    province_id                   Int?
+    province_detail               province?        @relation("provinceRelation", fields: [province_id], references: [id])
+    district_id                   Int?
+    district_detail               district?        @relation("districtRelation", fields: [district_id], references: [id])
+    sub_district_id               Int?
+    sub_district_detail           sub_district?    @relation("subDistrictRelation", fields: [sub_district_id], references: [id])
+    is_pass_coop_subject          Boolean          @default(false)
+    is_pass_general_subject       Boolean          @default(false)
+    is_pass_gpa                   Boolean          @default(false)
+    is_pass_suspend               Boolean          @default(false)
+    is_pass_punishment            Boolean          @default(false)
+    is_pass_disease               Boolean          @default(false)
+    ppt_report_file               String?
+    poster_report_file            String?
+    send_at                       DateTime?        @db.Date
+    reject_status_id              Int?
+    reject_status_detail          reject_status?   @relation(fields: [reject_status_id], references: [id])
+
+    // reject
+    is_active  Boolean   @default(true)
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
+    deleted_at DateTime?
+}
+
+model student_status {
+    id              Int               @id @default(autoincrement())
+    name            String
+    is_active       Boolean           @default(true)
+    created_at      DateTime          @default(now())
+    created_by      String?           @db.VarChar(255)
+    updated_at      DateTime          @updatedAt
+    updated_by      String?           @db.VarChar(255)
+    deleted_at      DateTime?
+    student_profile student_profile[]
+}
+
+model form_status {
+    id         Int       @id @default(autoincrement())
+    name       String
+    is_active  Boolean   @default(true)
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
+    deleted_at DateTime?
+    form       form[]
+}
+
+model reject_status {
+    id         Int       @id @default(autoincrement())
+    name       String
+    is_active  Boolean   @default(true)
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
+    deleted_at DateTime?
+    form       form[]
+}
+
+model reject_log {
+    id               Int       @id @default(autoincrement())
+    comment          String?   @db.Text
+    user_id          Int
+    form_id          Int
+    reject_status_id Int
+    is_active        Boolean   @default(true)
+    created_at       DateTime  @default(now())
+    created_by       String?   @db.VarChar(255)
+    updated_at       DateTime  @updatedAt
+    updated_by       String?   @db.VarChar(255)
+    deleted_at       DateTime?
+}
+
+model province {
+    id                          Int               @id @default(autoincrement())
+    name_th                     String?
+    name_en                     String?
+    geography_id                Int
+    created_at                  DateTime          @default(now())
+    updated_at                  DateTime          @updatedAt
+    deleted_at                  DateTime?
+    teacher_profile             teacher_profile[]
+    student_profile             student_profile[]
+    company                     company[]
+    forms_response_as_province  form[]            @relation("responseProvinceRelation")
+    forms_as_province           form[]            @relation("provinceRelation")
+    forms_workplace_as_province form[]            @relation("workplaceProvinceRelation")
+}
+
+model district {
+    id                          Int               @id @default(autoincrement())
+    province_id                 Int
+    name_th                     String?
+    name_en                     String?
+    created_at                  DateTime          @default(now())
+    updated_at                  DateTime          @updatedAt
+    deleted_at                  DateTime?
+    teacher_profile             teacher_profile[]
+    student_profile             student_profile[]
+    company                     company[]
+    forms_as_district           form[]            @relation("districtRelation")
+    forms_workplace_as_district form[]            @relation("workplaceDistrictRelation")
+}
+
+model sub_district {
+    id                              Int               @id @default(autoincrement())
+    district_id                     Int
+    name_th                         String?
+    name_en                         String?
+    zip_code                        Int?
+    is_active                       Boolean           @default(true)
+    created_at                      DateTime          @default(now())
+    created_by                      String?           @db.VarChar(255)
+    updated_at                      DateTime          @updatedAt
+    updated_by                      String?           @db.VarChar(255)
+    deleted_at                      DateTime?
+    teacher_profile                 teacher_profile[]
+    student_profile                 student_profile[]
+    company                         company[]
+    forms_as_sub_district           form[]            @relation("subDistrictRelation")
+    forms_workplace_as_sub_district form[]            @relation("workplaceSubDistrictRelation")
+}
