@@ -157,7 +157,7 @@ const methods = {
     async onGetByuuID(req, res) {
         try {
             const uuID = Number(req.params.uuID);
-
+            
             if (isNaN(uuID)) {
                 return res.status(400).json({ msg: "Invalid uuID format" });
             }
