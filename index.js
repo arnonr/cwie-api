@@ -6,6 +6,7 @@ var path = require("path");
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
 const compression = require("compression");
+const winston = require('winston');
 const cluster = require("cluster");
 const os = require("os");
 
@@ -35,6 +36,34 @@ if (cluster.isMaster) {
         origin: process.env.CORS,
         credentials: true,
     };
+
+    // สร้าง Logger ด้วย Winston
+    const logger = winston.createLogger({
+        level: "info",
+        format: winston.format.json(),
+        transports: [
+            new winston.transports.File({
+                filename: "error.log",
+                level: "error",
+            }),
+            new winston.transports.File({ filename: "combined.log" }),
+        ],
+    });
+
+    // ถ้าเป็นการพัฒนา ใช้ Console logging ด้วย
+    if (process.env.NODE_ENV !== "production") {
+        logger.add(
+            new winston.transports.Console({
+                format: winston.format.simple(),
+            })
+        );
+    }
+
+    app.use((req, res, next) => {
+        logger.info(`Request received: ${req.method} ${req.url}`);
+        next();
+    });
+
     app.use(
         compression({
             threshold: 1024, // บีบอัดเฉพาะข้อมูลที่ใหญ่กว่า 1KB
