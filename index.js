@@ -5,17 +5,19 @@ const routes = require("./routes");
 var path = require("path");
 const bodyParser = require("body-parser");
 const fileUpload = require("express-fileupload");
+const compression = require('compression');
 dotenv.config();
 
 
 const app = express();
+
 const port = process.env.APP_PORT || 3002;
 
 const corsOptions = {
     origin: process.env.CORS,
     credentials: true,
 };
-
+app.use(compression());
 app.use(bodyParser.json({ limit: "500mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "500mb" }));
 app.use(cors(corsOptions));
