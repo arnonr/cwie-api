@@ -20,6 +20,10 @@ const staffProfile = require("./api/staff-profile");
 const permission = require("./api/permission");
 const studentStatus = require("./api/student-status");
 const studentProfile = require("./api/student-profile");
+const documentType = require("./api/document-type");
+const formStatus = require("./api/form-status");
+const semester = require("./api/semester");
+const rejectStatus = require("./api/reject-status");
 
 router.use(
     // `${process.env.SUB_URL}/api/v${process.env.API_VERSION}`,
@@ -41,7 +45,11 @@ router.use(
     router.use("/staff-profile", staffProfile),
     router.use("/permission", permission),
     router.use("/student-status", studentStatus),
-    router.use("/student-profile", studentProfile)
+    router.use("/student-profile", studentProfile),
+    router.use("/document-type", documentType),
+    router.use("/form-status", formStatus),
+    router.use("/semester", semester),
+    router.use("/reject-status", rejectStatus),
 );
 
 module.exports = router;

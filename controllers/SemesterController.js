@@ -3,16 +3,26 @@ const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
 
 const prisma = new PrismaClient();
-const $table = "user_status";
+const $table = "semester";
 
+// ฟิลด์ที่ต้องการ Select รวมถึง join
+const selectField = {
+    id: true,
+    uuid: true,
+    year: true,
+    term: true,
+    is_active: true,
+};
 const filterData = (req) => {
-    const { id, code, name, is_active } = req.query;
+    const { id, uuid, year, term, is_active } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
         deleted_at: null,
         ...(id && { id: Number(id) }),
-        ...(name && { name: { contains: name } }),
+        ...(uuid && { uuid: uuid }),
+        ...(year && { year: Number(year) }),
+        ...(term && { term: Number(term) }),
         ...(is_active && { is_active: Number(is_active) }),
     };
 
@@ -20,16 +30,10 @@ const filterData = (req) => {
 };
 
 const schema = Joi.object({
-    name: Joi.string().required(),
+    year: Joi.number().required(),
+    term: Joi.string().required(),
     is_active: Joi.boolean().default(true),
 });
-
-// ฟิลด์ที่ต้องการ Select รวมถึง join
-const selectField = {
-    id: true,
-    name: true,
-    is_active: true,
-};
 
 const methods = {
     async onGetAll(req, res) {
@@ -55,6 +59,35 @@ const methods = {
         } catch (error) {
             console.error("Error fetching data:", error); // Log error for debugging
             res.status(500).json({ msg: error.message });
+        }
+    },
+
+    async onGetByUUID(req, res) {
+        try {
+            const uuid = req.params.uuid;
+
+            if (!uuid) {
+                return res.status(400).json({ msg: "Invalid UUID format" });
+            }
+
+            const item = await prisma[$table].findUnique({
+                select: selectField,
+                where: {
+                    uuid: uuid,
+                },
+            });
+
+            if (!item) {
+                return res.status(404).json({ msg: "Item not found" });
+            }
+
+            res.status(200).json({
+                data: item,
+                msg: "success",
+            });
+        } catch (error) {
+            console.error("Error fetching item by uuID:", error);
+            res.status(404).json({ msg: error.message });
         }
     },
 

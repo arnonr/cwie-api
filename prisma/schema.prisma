@@ -243,8 +243,8 @@ model staff_profile {
 
 model semester {
     id         Int       @id @default(autoincrement())
-    uuID       String    @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
-    year       String    @db.VarChar(255)
+    uuid       String    @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    year       Int
     term       String    @db.VarChar(255)
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
@@ -252,6 +252,7 @@ model semester {
     updated_at DateTime  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
+    deleted_by String?   @db.VarChar(255)
     form       form[]
 }
 
@@ -372,6 +373,7 @@ model document_type {
     updated_at  DateTime  @updatedAt
     updated_by  String?   @db.VarChar(255)
     deleted_at  DateTime?
+    deleted_by  String?   @db.VarChar(255)
 }
 
 model document {
@@ -491,6 +493,7 @@ model form_status {
     updated_at DateTime  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
+    deleted_by String?   @db.VarChar(255)
     form       form[]
 }
 
@@ -503,6 +506,7 @@ model reject_status {
     updated_at DateTime  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
+    deleted_by String?   @db.VarChar(255)
     form       form[]
 }
 

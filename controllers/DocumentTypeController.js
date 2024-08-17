@@ -3,16 +3,25 @@ const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
 
 const prisma = new PrismaClient();
-const $table = "user_status";
+const $table = "document_type";
+
+// ฟิลด์ที่ต้องการ Select รวมถึง join
+const selectField = {
+    id: true,
+    name: true,
+    description: true,
+    is_active: true,
+};
 
 const filterData = (req) => {
-    const { id, code, name, is_active } = req.query;
+    const { id, name, description, is_active } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
         deleted_at: null,
         ...(id && { id: Number(id) }),
         ...(name && { name: { contains: name } }),
+        ...(description && { description: { contains: description } }),
         ...(is_active && { is_active: Number(is_active) }),
     };
 
@@ -21,15 +30,9 @@ const filterData = (req) => {
 
 const schema = Joi.object({
     name: Joi.string().required(),
+    description: Joi.string().allow(null, ""),
     is_active: Joi.boolean().default(true),
 });
-
-// ฟิลด์ที่ต้องการ Select รวมถึง join
-const selectField = {
-    id: true,
-    name: true,
-    is_active: true,
-};
 
 const methods = {
     async onGetAll(req, res) {
@@ -153,7 +156,6 @@ const methods = {
                 },
                 data: {
                     deleted_at: new Date(),
-                    deleted_by: req.user?.name,
                 },
             });
 
