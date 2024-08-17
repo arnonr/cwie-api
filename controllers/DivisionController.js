@@ -3,10 +3,10 @@ const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
 
 const prisma = new PrismaClient();
-const $table = "department";
+const $table = "division";
 
 const filterData = (req) => {
-    const { id, code, name, phone, email, faculty_id, is_active } = req.query;
+    const { id, code, name, phone, email, department_id, is_active } = req.query;
 
     let $where = {
         deleted_at: null,
@@ -15,7 +15,7 @@ const filterData = (req) => {
         ...(name && { name: { contains: name } }),
         ...(phone && { phone: { contains: phone } }),
         ...(email && { email: { contains: email } }),
-        ...(faculty_id && { id: Number(faculty_id) }),
+        ...(department_id && { department_id: Number(department_id) }),
         ...(is_active && { is_active: Number(is_active) }),
     };
 
@@ -28,7 +28,7 @@ const schema = Joi.object({
     name_short: Joi.string().allow(null, ""),
     phone: Joi.string().allow(null, ""),
     email: Joi.string().allow(null, ""),
-    faculty_id: Joi.number().required(),
+    department_id: Joi.number().required(),
     is_active: Joi.boolean().required(),
 });
 
@@ -40,9 +40,9 @@ const selectField = {
     name_short: true,
     phone: true,
     email: true,
-    faculty_id: true,
+    department_id: true,
     is_active: true,
-    faculty_detail: {
+    department_detail: {
         select: {
             name: true,
         },
@@ -171,6 +171,7 @@ const methods = {
                 },
                 data: {
                     deleted_at: new Date(),
+                    deleted_at_by: req.user?.name,
                 },
             });
 

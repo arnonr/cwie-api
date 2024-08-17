@@ -11,15 +11,16 @@ const loginValidator = [
     body("password", "Password does not Empty").not().isEmpty(),
 ];
 
-router.post("/login", controllers.onLogin);
 // router.post("/login", controllers.onLogin);
+// router.post("/login", controllers.onLogin);
+router.get("/:uuid", controllers.onGetByUUID);
 router.get("/", controllers.onGetAll);
-router.get("/:id", controllers.onGetById);
+
 
 router.post("/", controllers.onCreate);
 
-// router.put("/:id", controllers.onUpdate);
-router.put("/:id", controllers.onUpdate); /* POST method for Upload file */
+router.put("/:uuid", controllers.onUpdate);
+// router.put("/:id", controllers.onUpdate); /* POST method for Upload file */
 
 router.delete("/:id", controllers.onDelete);
 

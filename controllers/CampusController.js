@@ -31,6 +31,7 @@ const selectField = {
     id: true,
     code: true,
     name: true,
+    name_short: true,
     is_active: true,
 };
 
@@ -86,6 +87,9 @@ const methods = {
             });
         } catch (error) {
             console.error("Error fetching item by ID:", error);
+            if (error.code === "P2025") {
+                return res.status(404).json({ msg: "Item not found" });
+            }
             res.status(404).json({ msg: error.message });
         }
     },
@@ -106,6 +110,9 @@ const methods = {
             res.status(201).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error creating item:", error);
+            if (error.code === "P2002") {
+                return res.status(409).json({ msg: "Item already exists" });
+            }
             res.status(500).json({ msg: error.message });
         }
     },
@@ -129,6 +136,9 @@ const methods = {
             res.status(200).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error updating item:", error);
+            if (error.code === "P2025") {
+                return res.status(404).json({ msg: "Item not found" });
+            }
             res.status(400).json({ msg: error.message });
         }
     },
@@ -153,6 +163,9 @@ const methods = {
             res.status(200).json({ msg: "success" });
         } catch (error) {
             console.error("Error deleting item:", error);
+            if (error.code === "P2025") {
+                return res.status(404).json({ msg: "Item not found" });
+            }
             res.status(400).json({ msg: error.message });
         }
     },

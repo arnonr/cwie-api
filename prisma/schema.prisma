@@ -14,7 +14,7 @@ datasource db {
 // กลุ่มผู้ใช้งาน เช่น 1. ผู้ดูแลระบบ 2. เจ้าหน้าที่อุทยานฯ 3. เจ้าหน้าที่คณะ 4.เจ้าหน้าท่ีภาค 5.เจ้าหน้าที่สาขา 6.อาจารย์ 7.นักศึกษา
 model user {
     id            Int          @id @default(autoincrement())
-    uuID          String       @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    uuid          String       @unique @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
     group_id      Int
     group_detail  group        @relation(fields: [group_id], references: [id])
     type_id       Int
@@ -33,6 +33,7 @@ model user {
     updated_at    DateTime     @updatedAt
     updated_by    String?      @db.VarChar(255)
     deleted_at    DateTime?
+    deleted_by    String?      @db.VarChar(255)
     blocked_at    DateTime?
     permissions   permission[]
 
@@ -50,6 +51,10 @@ model permission {
     action  String
     user_id Int
     user    user   @relation(fields: [user_id], references: [id])
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
 }
 
 model user_status {
@@ -61,14 +66,17 @@ model user_status {
     updated_at DateTime  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
+    deleted_by String?   @db.VarChar(255)
     user       user[]
 }
 
 model group {
     id                Int                @id @default(autoincrement())
     name              String             @unique
-    created_at        DateTime           @default(now())
-    updated_at        DateTime           @updatedAt
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
     user              user[]
     group_permissions group_permission[]
 }
@@ -79,13 +87,17 @@ model group_permission {
     action   String
     group_id Int?
     group    group? @relation(fields: [group_id], references: [id])
+    created_at DateTime  @default(now())
+    created_by String?   @db.VarChar(255)
+    updated_at DateTime  @updatedAt
+    updated_by String?   @db.VarChar(255)
 }
 
 model teacher_profile {
     id                    Int               @id @default(autoincrement())
-    uuID                  String            @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    uuid                  String            @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
     signature_file        String?
-    ExecutivePosition     String?
+    executive_position     String?
     user_id               Int?              @unique
     user                  user?             @relation(fields: [user_id], references: [id], name: "TeacherProfileToUser")
     person_key            String
@@ -100,8 +112,8 @@ model teacher_profile {
     faculty_detail        faculty?          @relation(fields: [faculty_id], references: [id])
     department_id         Int?
     department_detail     department?       @relation(fields: [department_id], references: [id])
-    major_id              Int?
-    major_detail          major?            @relation(fields: [major_id], references: [id])
+    division_id              Int?
+    division_detail          division?            @relation(fields: [division_id], references: [id])
     province_id           Int?
     province_detail       province?         @relation(fields: [province_id], references: [id])
     district_id           Int?
@@ -114,15 +126,16 @@ model teacher_profile {
     updated_at            DateTime          @updatedAt
     updated_by            String?           @db.VarChar(255)
     deleted_at            DateTime?
+    deleted_by            String?           @db.VarChar(255)
     student_profile       student_profile[]
     forms_as_visitor      form[]            @relation("visitorRelation") // Add this field
-    forms_as_major_head   form[]            @relation("majorHeadRelation") // Add this field
+    forms_as_division_head   form[]            @relation("divisionHeadRelation") // Add this field
     forms_as_faculty_head form[]            @relation("facultyHeadRelation") // Add this field
 
     @@index([user_id], name: "idx_user_id")
     @@index([faculty_id], name: "idx_faculty_id")
     @@index([department_id], name: "idx_department_id")
-    @@index([major_id], name: "idx_major_id")
+    @@index([division_id], name: "idx_division_id")
     @@index([firstname, surname], name: "idx_fullname")
     @@index([deleted_at, is_active], name: "idx_deleted_at_is_active")
     @@index([deleted_at], name: "deleted_at")
@@ -130,7 +143,7 @@ model teacher_profile {
 
 model student_profile {
     id      Int    @id @default(autoincrement())
-    uuID    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    uuid    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
     user_id Int?   @unique
     user    user?  @relation(fields: [user_id], references: [id], name: "StudentProfileToUser")
 
@@ -146,8 +159,8 @@ model student_profile {
     faculty_detail      faculty?         @relation(fields: [faculty_id], references: [id])
     department_id       Int?
     department_detail   department?      @relation(fields: [department_id], references: [id])
-    major_id            Int?
-    major_detail        major?           @relation(fields: [major_id], references: [id])
+    division_id            Int?
+    division_detail        division?           @relation(fields: [division_id], references: [id])
     province_id         Int?
     province_detail     province?        @relation(fields: [province_id], references: [id])
     district_id         Int?
@@ -159,7 +172,7 @@ model student_profile {
     class_room          String?
     advisor_id          Int?
     advisor_detail      teacher_profile? @relation(fields: [advisor_id], references: [id])
-    GPA                 Decimal?         @db.Decimal(2, 2)
+    gpa                 Decimal?         @db.Decimal(4, 2)
     contact1_name       String?
     contact1_relation   String?
     contact1_phone      String?          @db.VarChar(32)
@@ -170,8 +183,8 @@ model student_profile {
     congenital_disease  String?          @db.Text
     drug_allergy        String?          @db.Text
     emergency_phone     String?          @db.VarChar(32)
-    Height              Decimal?         @db.Decimal(3, 2)
-    Weight              Decimal?         @db.Decimal(3, 2)
+    height              Decimal?         @db.Decimal(3, 2)
+    weight              Decimal?         @db.Decimal(3, 2)
     status_id           Int
     status_detail       student_status?  @relation(fields: [status_id], references: [id])
     photo_file          String?
@@ -181,19 +194,20 @@ model student_profile {
     updated_at          DateTime         @updatedAt
     updated_by          String?          @db.VarChar(255)
     deleted_at          DateTime?
+    deleted_by          String?          @db.VarChar(255)
     form                form[]
 
     @@index([user_id], name: "idx_student_user_id")
     @@index([faculty_id], name: "idx_student_faculty_id")
     @@index([department_id], name: "idx_student_department_id")
-    @@index([major_id], name: "idx_student_major_id")
+    @@index([division_id], name: "idx_student_division_id")
     @@index([advisor_id], name: "idx_student_advisor_id")
     @@index([status_id], name: "idx_student_status_id")
 }
 
 model staff_profile {
     id      Int    @id @default(autoincrement())
-    uuID    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    uuid    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
     user_id Int?   @unique
     user    user?  @relation(fields: [user_id], references: [id], name: "StaffProfileToUser")
 
@@ -209,19 +223,20 @@ model staff_profile {
     faculty_detail    faculty?    @relation(fields: [faculty_id], references: [id])
     department_id     Int?
     department_detail department? @relation(fields: [department_id], references: [id])
-    major_id          Int?
-    major_detail      major?      @relation(fields: [major_id], references: [id])
+    division_id          Int?
+    division_detail      division?      @relation(fields: [division_id], references: [id])
     is_active         Boolean     @default(true)
     created_at        DateTime    @default(now())
     created_by        String?     @db.VarChar(255)
     updated_at        DateTime    @updatedAt
     updated_by        String?     @db.VarChar(255)
     deleted_at        DateTime?
+    deleted_by        String?     @db.VarChar(255)
 
     @@index([user_id], name: "idx_staff_user_id")
     @@index([faculty_id], name: "idx_staff_faculty_id")
     @@index([department_id], name: "idx_staff_department_id")
-    @@index([major_id], name: "idx_staff_major_id")
+    @@index([division_id], name: "idx_staff_division_id")
 }
 
 model semester {
@@ -266,8 +281,9 @@ model company {
 
 model campus {
     id         Int       @id @default(autoincrement())
-    code       String
+    code       String?   @unique
     name       String
+    name_short String?
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
@@ -279,8 +295,9 @@ model campus {
 
 model faculty {
     id              Int               @id @default(autoincrement())
-    code            String
+    code            String?           @unique
     name            String
+    name_short      String?
     phone           String?
     email           String?
     campus_id       Int?
@@ -291,6 +308,7 @@ model faculty {
     updated_at      DateTime          @updatedAt
     updated_by      String?           @db.VarChar(255)
     deleted_at      DateTime?
+    deleted_by      String?           @db.VarChar(255)
     teacher_profile teacher_profile[]
     student_profile student_profile[]
     staff_profile   staff_profile[]
@@ -299,8 +317,9 @@ model faculty {
 
 model department {
     id              Int               @id @default(autoincrement())
-    code            String
+    code            String?           @unique
     name            String
+    name_short      String?
     phone           String?
     email           String?
     faculty_id      Int?
@@ -314,15 +333,16 @@ model department {
     teacher_profile teacher_profile[]
     student_profile student_profile[]
     staff_profile   staff_profile[]
-    major           major[]
+    division           division[]
 
     @@index([faculty_id], name: "idx_department_faculty_id")
 }
 
-model major {
+model division {
     id                Int               @id @default(autoincrement())
-    code              String
+    code              String?           @unique
     name              String
+    name_short        String?
     phone             String?
     email             String?
     department_id     Int?
@@ -337,7 +357,7 @@ model major {
     student_profile   student_profile[]
     staff_profile     staff_profile[]
 
-    @@index([department_id], name: "idx_major_department_id")
+    @@index([department_id], name: "idx_division_department_id")
 }
 
 model document_type {
@@ -378,8 +398,8 @@ model form {
     semester_detail               semester?        @relation(fields: [semester_id], references: [id])
     visitor_id                    Int?
     visitor_detail                teacher_profile? @relation("visitorRelation", fields: [visitor_id], references: [id])
-    major_head_id                 Int?
-    major_head_detail             teacher_profile? @relation("majorHeadRelation", fields: [major_head_id], references: [id])
+    division_head_id                 Int?
+    division_head_detail             teacher_profile? @relation("divisionHeadRelation", fields: [division_head_id], references: [id])
     faculty_head_id               Int?
     faculty_head_detail           teacher_profile? @relation("facultyHeadRelation", fields: [faculty_head_id], references: [id])
     form_status_id                Int
@@ -416,7 +436,7 @@ model form {
     plan_send_at                  DateTime?        @db.Date
     plan_accept_at                DateTime?        @db.Date
     advisor_verified_at           DateTime?        @db.Date
-    major_head_approved_at        DateTime?        @db.Date
+    division_head_approved_at        DateTime?        @db.Date
     faculty_head_approved_at      DateTime?        @db.Date
     staff_confirmed_at            DateTime?        @db.Date
     namecard_file                 String?
@@ -456,6 +476,7 @@ model student_status {
     updated_at      DateTime          @updatedAt
     updated_by      String?           @db.VarChar(255)
     deleted_at      DateTime?
+    deleted_by      String?           @db.VarChar(255)
     student_profile student_profile[]
 }
 

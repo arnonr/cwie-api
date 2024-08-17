@@ -3,50 +3,28 @@ const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
 
 const prisma = new PrismaClient();
-const $table = "department";
+const $table = "group";
 
 const filterData = (req) => {
-    const { id, code, name, phone, email, faculty_id, is_active } = req.query;
+    const { id, name} = req.query;
 
+    // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
-        deleted_at: null,
         ...(id && { id: Number(id) }),
-        ...(code && { code: code }),
         ...(name && { name: { contains: name } }),
-        ...(phone && { phone: { contains: phone } }),
-        ...(email && { email: { contains: email } }),
-        ...(faculty_id && { id: Number(faculty_id) }),
-        ...(is_active && { is_active: Number(is_active) }),
     };
 
     return $where;
 };
 
 const schema = Joi.object({
-    code: Joi.string().required(),
     name: Joi.string().required(),
-    name_short: Joi.string().allow(null, ""),
-    phone: Joi.string().allow(null, ""),
-    email: Joi.string().allow(null, ""),
-    faculty_id: Joi.number().required(),
-    is_active: Joi.boolean().required(),
 });
 
 // ฟิลด์ที่ต้องการ Select รวมถึง join
 const selectField = {
     id: true,
-    code: true,
     name: true,
-    name_short: true,
-    phone: true,
-    email: true,
-    faculty_id: true,
-    is_active: true,
-    faculty_detail: {
-        select: {
-            name: true,
-        },
-    },
 };
 
 const methods = {
@@ -101,7 +79,7 @@ const methods = {
             });
         } catch (error) {
             console.error("Error fetching item by ID:", error);
-            if (error.code === "P2025") {
+            if(error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(404).json({ msg: error.message });
@@ -124,7 +102,7 @@ const methods = {
             res.status(201).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error creating item:", error);
-            if (error.code === "P2002") {
+            if(error.code === "P2002") {
                 return res.status(409).json({ msg: "Item already exists" });
             }
             res.status(500).json({ msg: error.message });
@@ -150,7 +128,7 @@ const methods = {
             res.status(200).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error updating item:", error);
-            if (error.code === "P2025") {
+            if(error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
@@ -165,19 +143,16 @@ const methods = {
                 return res.status(400).json({ msg: "ID is required" });
             }
 
-            await prisma[$table].update({
+            await prisma[$table].delete({
                 where: {
                     id: Number(id),
-                },
-                data: {
-                    deleted_at: new Date(),
-                },
+                }
             });
 
             res.status(200).json({ msg: "success" });
         } catch (error) {
             console.error("Error deleting item:", error);
-            if (error.code === "P2025") {
+            if(error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
