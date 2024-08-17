@@ -57,6 +57,7 @@ model permission {
     updated_by String?   @db.VarChar(255)
 }
 
+// 1 รอตรวจสอบ //2 ใช้งาน //3บล็อค
 model user_status {
     id         Int       @id @default(autoincrement())
     name       String    @unique
@@ -70,6 +71,7 @@ model user_status {
     user       user[]
 }
 
+// กลุ่มผู้ใช้งาน เช่น 1. ผู้ดูแลระบบ 2. เจ้าหน้าที่อุทยานฯ 3. เจ้าหน้าที่คณะ 4.เจ้าหน้าท่ีภาค 5.เจ้าหน้าที่สาขา 6.อาจารย์ 7.นักศึกษา
 model group {
     id                Int                @id @default(autoincrement())
     name              String             @unique
