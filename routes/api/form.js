@@ -1,13 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const cacheMiddleware = require("../middleware/cacheMiddleware"); // import middleware
 
-const controllers = require("../../controllers/CompanyController");
+const controllers = require("../../controllers/FormController");
 
-router.get("/", cacheMiddleware, controllers.onGetAll);
-router.get("/:id", controllers.onGetById);
-
+router.get("/", controllers.onGetAll);
 router.get("/get-by-uuid/:uuid", controllers.onGetByuuID);
+router.get("/:id", controllers.onGetById);
 
 router.post("/", controllers.onCreate);
 

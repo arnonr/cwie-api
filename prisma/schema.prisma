@@ -258,7 +258,7 @@ model semester {
 
 model company {
     id                  Int           @id @default(autoincrement())
-    uuID                String        @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    uuid                String        @unique @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
     name                String
     phone               String?
     email               String?
@@ -393,7 +393,7 @@ model document {
 
 model form {
     id                            Int              @id @default(autoincrement())
-    uuID                          String           @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    uuid                          String           @unique @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
     student_id                    Int
     student_detail                student_profile? @relation(fields: [student_id], references: [id])
     company_id                    Int
@@ -450,12 +450,12 @@ model form {
     district_detail               district?        @relation("districtRelation", fields: [district_id], references: [id])
     sub_district_id               Int?
     sub_district_detail           sub_district?    @relation("subDistrictRelation", fields: [sub_district_id], references: [id])
-    is_pass_coop_subject          Boolean          @default(false)
-    is_pass_general_subject       Boolean          @default(false)
-    is_pass_gpa                   Boolean          @default(false)
-    is_pass_suspend               Boolean          @default(false)
-    is_pass_punishment            Boolean          @default(false)
-    is_pass_disease               Boolean          @default(false)
+    is_pass_coop_subject          Boolean?          @default(false)
+    is_pass_general_subject       Boolean?          @default(false)
+    is_pass_gpa                   Boolean?          @default(false)
+    is_pass_suspend               Boolean?          @default(false)
+    is_pass_punishment            Boolean?          @default(false)
+    is_pass_disease               Boolean?          @default(false)
     ppt_report_file               String?
     poster_report_file            String?
     send_at                       DateTime?        @db.Date

@@ -24,6 +24,7 @@ const documentType = require("./api/document-type");
 const formStatus = require("./api/form-status");
 const semester = require("./api/semester");
 const rejectStatus = require("./api/reject-status");
+const form = require("./api/form");
 
 router.use(
     // `${process.env.SUB_URL}/api/v${process.env.API_VERSION}`,
@@ -50,6 +51,7 @@ router.use(
     router.use("/form-status", formStatus),
     router.use("/semester", semester),
     router.use("/reject-status", rejectStatus),
+    router.use("/form", form),
 );
 
 module.exports = router;

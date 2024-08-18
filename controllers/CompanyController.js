@@ -20,7 +20,7 @@ const prisma = new PrismaClient().$extends({
 const filterData = (req) => {
     const {
         id,
-        uuID,
+        uuid,
         name,
         phone,
         email,
@@ -35,7 +35,7 @@ const filterData = (req) => {
     let $where = {
         deleted_at: null,
         ...(id && { id: Number(id) }),
-        ...(uuID && { uuID: uuID }),
+        ...(uuid && { uuid: uuid }),
         ...(name && { name: { contains: name } }),
         ...(phone && { phone: { contains: phone } }),
         ...(email && { email: { contains: email } }),
@@ -68,7 +68,7 @@ const schema = Joi.object({
 // ฟิลด์ที่ต้องการ Select รวมถึง join
 const selectField = {
     id: true,
-    uuID: true,
+    uuid: true,
     name: true,
     phone: true,
     email: true,
@@ -156,16 +156,16 @@ const methods = {
 
     async onGetByuuID(req, res) {
         try {
-            const uuID = Number(req.params.uuID);
+            const uuid = req.params.uuid;
             
-            if (isNaN(uuID)) {
-                return res.status(400).json({ msg: "Invalid uuID format" });
+            if (!uuid) {
+                return res.status(400).json({ msg: "uuid is required" });
             }
 
             const item = await prisma[$table].findUnique({
                 select: selectField,
                 where: {
-                    uuID,
+                    uuid: uuid,
                 },
             });
 
@@ -239,6 +239,7 @@ const methods = {
                 },
                 data: {
                     deleted_at: new Date(),
+                    updated_by: req.user?.name,
                 },
             });
 
