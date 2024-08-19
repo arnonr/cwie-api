@@ -290,7 +290,7 @@ model campus {
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime  @default(now())
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
     faculty    faculty[]
@@ -308,7 +308,7 @@ model faculty {
     is_active       Boolean           @default(true)
     created_at      DateTime          @default(now())
     created_by      String?           @db.VarChar(255)
-    updated_at      DateTime          @updatedAt
+    updated_at      DateTime          @default(now())
     updated_by      String?           @db.VarChar(255)
     deleted_at      DateTime?
     deleted_by      String?           @db.VarChar(255)

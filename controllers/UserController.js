@@ -83,6 +83,7 @@ const schema = Joi.object({
     type_id: Joi.number().required(),
     status_id: Joi.number().required(),
     is_active: Joi.boolean().default(true),
+    password: Joi.string().allow(null, ""),
 });
 
 
@@ -176,6 +177,10 @@ const methods = {
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
             }
+
+            // if(value.password) {
+            //     value.password = encryptPassword(value.password);
+            // }
 
             const item = await prisma[$table].update({
                 where: {

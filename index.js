@@ -60,7 +60,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 app.use((req, res, next) => {
-    logger.info(`Request received: ${req.method} ${req.url}`);
+    // logger.info(`Request received: ${req.method} ${req.url}`);
     next();
 });
 

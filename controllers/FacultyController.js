@@ -50,6 +50,31 @@ const selectField = {
     },
 };
 
+const getIdByCode = async (code) => {
+    const item = await prisma.faculty.findUnique({
+        where: {
+            code,
+        },
+    });
+    return item?.id;
+};
+
+const getIdByCreate = async (code, name) => {
+    const item = await prisma[$table].upsert({
+        where: {
+            code: code
+        },
+        update: {
+            // name: name
+        },
+        create: {
+            code: code,
+            name: name
+        }
+    })
+    return item.id;
+};
+
 const methods = {
     async onGetAll(req, res) {
         try {
@@ -187,4 +212,4 @@ const methods = {
     },
 };
 
-module.exports = { ...methods };
+module.exports = { ...methods, getIdByCreate };
