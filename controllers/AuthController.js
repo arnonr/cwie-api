@@ -7,6 +7,7 @@ const facultyController = require("./FacultyController");
 const divisionController = require("./DivisionController");
 const departmentController = require("./DepartmentController");
 const $table = "user";
+const $student_profile = "student_profile";
 
 const prisma = new PrismaClient();
 
@@ -71,6 +72,30 @@ const selectField = {
         },
     },
 };
+
+const upsertStudentProfile = async (user_id, data) => {
+    try {
+        const response = await prisma[$student_profile].upsert({
+            where: {
+                user_id: user_id,
+            },
+            create: {
+                user_id: user_id,
+                ...data,
+            },
+            update: {
+                ...data,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
+
+
 
 const decryptPassword = (encryptedPassword) => {
     const bytes = CryptoJS.AES.decrypt(encryptedPassword, secretKey);
@@ -193,6 +218,9 @@ const methods = {
             if (!req.body.username) throw new Error("Username is undefined");
             if (!req.body.password || req.body.password.length == 0) throw new Error("Password is undefined");
 
+            let user_id = null;
+            let username = null;
+
             const item = await prisma[$table].findUnique({
                 select: { ...selectField },
                 where: { username: req.body.username, deleted_at: null },
@@ -201,7 +229,7 @@ const methods = {
             if (item) {
 
                 if (item.status_id == 1) {
-                    throw new Error("รอตรวจสอบข้อมูลการลงทะเบียน");
+                    // throw new Error("รอตรวจสอบข้อมูลการลงทะเบียน");
                 } else if (item.status_id == 2) {
                     throw new Error("ลงทะเบียนแล้ว กรุณาเข้าสู่ระบบ");
                 } else {
@@ -210,6 +238,8 @@ const methods = {
                     );
                 }
 
+                user_id = item.id;
+                username = item.username;
             }
 
             const accountInfo = await loginWithIcitAccount(
@@ -218,6 +248,7 @@ const methods = {
             );
 
             if (accountInfo) {
+                username = accountInfo.userInfo.username;
                 // const {
                 //     username,
                 //     displayname,
@@ -229,7 +260,7 @@ const methods = {
 
                 // const nameArray = userInfo.displayname.split(" ");
                 // const surname = nameArray.slice(1).join(" ");
-                console.log(accountInfo);
+                // console.log(accountInfo);
                 // userInfo: {
                 //     username: 's5402041520261',
                 //     displayname: 'ศิวกร หลงสมบูรณ์',
@@ -267,59 +298,66 @@ const methods = {
                 //     STU_STATUS: 40,
                 //     STU_STATUS_DESC: 'สำเร็จการศึกษา'
                 //   }
-                const userInfo = accountInfo.userInfo;                
-                const username = userInfo.username;
+                const userInfo = accountInfo.userInfo;
                 const displayname = userInfo.displayname;
                 const account_type = userInfo.account_type;
                 const email = userInfo.email;
                 const person_key = userInfo.person_key;
                 const pid = userInfo.pid;
-                // console.log(username);
-
-                if(accountInfo.studentInfo){
-                    const fac_code = accountInfo.studentInfo.FAC_CODE;
-                    const fac_name = accountInfo.studentInfo.FAC_NAME_THAI;
-                    const dept_code = accountInfo.studentInfo.DEPT_CODE;
-                    const dept_name = accountInfo.studentInfo.DEPT_NAME_THAI;
-                    const div_code = accountInfo.studentInfo.DIV_CODE;
-                    const div_name = accountInfo.studentInfo.DIV_NAME_THAI;
-                    // console.log(fac_code, fac_name, dept_code, dept_name, div_code);
-                    // console.log(fac_code, dept_code, div_code);
-                    
-                    const fac_id = await facultyController.getIdByCreate(fac_code, fac_name);
-                    const dept_id = await departmentController.getIdByCreate(dept_code, dept_name, fac_id);
-                    const div_id = await divisionController.getIdByCreate(div_code, div_name, dept_id);
-
-                    // console.log(fac_id, dept_id, div_id);
-                }
 
                 let status_id = 1;
                 let group_id = null;
                 let type_id = null;
 
                 if (account_type == "student" || account_type == "alumni") {
-                    status_id = 1;
+                    status_id = 2; // อนุมัติ
                     group_id = 3; // นักศึกษา
-                } else {
-                    group_id = req.body.group_id;
+                    type_id = 1; // นักศึกษา
+
+                    if(accountInfo.studentInfo){
+                        const fac_code = accountInfo.studentInfo.FAC_CODE;
+                        const fac_name = accountInfo.studentInfo.FAC_NAME_THAI;
+                        const dept_code = accountInfo.studentInfo.DEPT_CODE;
+                        const dept_name = accountInfo.studentInfo.DEPT_NAME_THAI;
+                        const div_code = accountInfo.studentInfo.DIV_CODE;
+                        const div_name = accountInfo.studentInfo.DIV_NAME_THAI;
+                        const student_code = accountInfo.studentInfo.STU_CODE;
+                        const prefix = accountInfo.studentInfo.PRE_NAME_THAI;
+                        const firstname = accountInfo.studentInfo.STU_FIRST_NAME_THAI;
+                        const surname = accountInfo.studentInfo.STU_LAST_NAME_THAI;
+                        // const email = accountInfo.studentInfo.STU_EMAIL;
+                        // console.log(fac_code, fac_name, dept_code, dept_name, div_code);
+                        // console.log(fac_code, dept_code, div_code);
+
+                        const fac_id = await facultyController.getIdByCreate(fac_code, fac_name);
+                        const dept_id = await departmentController.getIdByCreate(dept_code, dept_name, fac_id);
+                        const div_id = await divisionController.getIdByCreate(div_code, div_name, dept_id);
+                        // console.log(user_id);
+
+                        const data = {
+                            student_code: student_code,
+                            prefix: prefix,
+                            firstname: firstname,
+                            surname: surname,
+                            faculty_id: fac_id,
+                            department_id: dept_id,
+                            division_id: div_id,
+                            citizen_id: null,
+                            status_id: 1,
+                        }
+                        const profile = await upsertStudentProfile(user_id, data);
+                    }
+
                 }
+                // else {
+                //     group_id = req.body.group_id;
+                // }
+
                 type_id = group_id;
                 // firstname: nameArray[0],
                 // surname: surname,
-
+                console.log("username", username);
                 const newUser = await prisma[$table].upsert({
-                    // data: {
-                    //     username: username,
-                    //     name: displayname,
-                    //     email: userInfo.email,
-                    //     status_id: status_id,
-                    //     group_id: group_id,
-                    //     type_id: type_id,
-                    //     citizen_id: pid,
-                    //     account_type: account_type,
-                    //     created_by: userInfo.username,
-                    //     updated_by: userInfo.username,
-                    // },
                     where: {
                         username: username,
                     },
@@ -350,14 +388,14 @@ const methods = {
                 res.status(200).json({ ...newUser, icit_account: accountInfo, msg: "success" });
             }else{
                 throw new Error("ICIT account not found");
-            } 
+            }
 
         } catch (error) {
             res.status(400).json({ msg: error.message });
         }
     },
 
-    async onSearchIcitAccount(req, res) {        
+    async onSearchIcitAccount(req, res) {
 
         let api_config = {
             method: "post",
@@ -365,7 +403,7 @@ const methods = {
             headers: {
                 Authorization: "Bearer " + process.env.ICIT_ACCOUNT_TOKEN,
             },
-            data: { 
+            data: {
                 username: req.body.username,
                 options: "student_info,personnel_info"
             },

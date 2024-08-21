@@ -23,9 +23,9 @@ model user {
     username      String       @unique
     password      String?
     name          String
-    citizen_id    String       @unique
-    phone         String?      @unique
-    email         String?      @unique
+    citizen_id    String
+    phone         String?
+    email         String?
     account_type  String
     is_active     Boolean      @default(true)
     created_at    DateTime     @default(now())
@@ -146,14 +146,12 @@ model teacher_profile {
 model student_profile {
     id      Int    @id @default(autoincrement())
     uuid    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
-    user_id Int?   @unique
-    user    user?  @relation(fields: [user_id], references: [id], name: "StudentProfileToUser")
-
-    person_key          String
+    user_id Int   @unique
+    user_detail    user?  @relation(fields: [user_id], references: [id], name: "StudentProfileToUser")
     prefix              String?
     firstname           String
     surname             String
-    citizen_id          String           @db.VarChar(32)
+    citizen_id          String?           @db.VarChar(32)
     phone               String?          @db.VarChar(32)
     email               String?
     address             String?          @db.Text
