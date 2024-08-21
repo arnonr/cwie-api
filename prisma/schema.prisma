@@ -53,7 +53,7 @@ model permission {
     user    user   @relation(fields: [user_id], references: [id])
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
 }
 
@@ -65,7 +65,7 @@ model user_status {
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
     deleted_by String?   @db.VarChar(255)
@@ -78,7 +78,7 @@ model group {
     name              String             @unique
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
     user              user[]
     group_permissions group_permission[]
@@ -92,7 +92,7 @@ model group_permission {
     group    group? @relation(fields: [group_id], references: [id])
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
 }
 
@@ -248,7 +248,7 @@ model semester {
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
     deleted_by String?   @db.VarChar(255)
@@ -467,7 +467,7 @@ model form {
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
 }
@@ -492,7 +492,7 @@ model form_status {
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
     deleted_by String?   @db.VarChar(255)
@@ -505,7 +505,7 @@ model reject_status {
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
-    updated_at DateTime  @updatedAt
+    updated_at DateTime?  @updatedAt
     updated_by String?   @db.VarChar(255)
     deleted_at DateTime?
     deleted_by String?   @db.VarChar(255)
