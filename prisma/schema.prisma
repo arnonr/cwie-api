@@ -393,7 +393,7 @@ model document {
 model form {
     id                            Int              @id @default(autoincrement())
     uuid                          String           @unique @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
-    form_number                   String?
+    form_number                   String?          @unique
     year_running                  Int?
     student_id                    Int
     student_detail                student_profile? @relation(fields: [student_id], references: [id])
