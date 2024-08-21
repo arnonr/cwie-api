@@ -11,31 +11,31 @@ const selectField = {
     uuid: true,
     student_id: true,
     student_detail: {
-        
+
     },
     company_id: true,
     company_detail: {
-        
+
     },
     semester_id: true,
     semester_detail: {
-        
+
     },
     visitor_id: true,
     visitor_detail: {
-        
+
     },
     division_head_id: true,
     division_head_detail: {
-        
+
     },
     faculty_head_id: true,
     faculty_head_detail: {
-        
+
     },
     form_status_id: true,
     form_status_detail: {
-        
+
     },
     start_date: true,
     end_date: true,
@@ -55,21 +55,21 @@ const selectField = {
     response_result: true,
     response_province_id: true,
     response_province_detail: {
-        
+
     },
     confirm_response_at: true,
     workplace_address: true,
     workplace_province_id: true,
     workplace_province_detail: {
-        
+
     },
     workplace_district_id: true,
     workplace_district_detail: {
-        
+
     },
     workplace_sub_district_id: true,
     workplace_sub_district_detail: {
-        
+
     },
     workplace_googlemap_url: true,
     workplace_googlemap_file: true,
@@ -82,15 +82,15 @@ const selectField = {
     namecard_file: true,
     province_id: true,
     province_detail: {
-        
+
     },
     district_id: true,
     district_detail: {
-        
+
     },
     sub_district_id: true,
     sub_district_detail: {
-        
+
     },
     is_pass_coop_subject: true,
     is_pass_general_subject: true,
@@ -103,7 +103,7 @@ const selectField = {
     send_at: true,
     reject_status_id: true,
     reject_status_detail: {
-        
+
     },
     created_at: true,
     created_by: true,
@@ -227,6 +227,62 @@ const schema = Joi.object({
     is_active: Joi.boolean(),
 });
 
+const generateFormNumber = async (id) => {
+    try{
+        const item = await prisma[$table].findUnique({
+            select: {
+                form_number: true,
+                year_running: true,
+            },
+            where: {
+                id: Number(id),
+            },
+        });
+
+        if (item.form_number != null) {
+            return null;
+        }
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1; // Months are zero-based
+
+        const maxRunning = await prisma[$table].aggregate({
+            _max: {
+                year_running: true,
+            },
+            where: {
+                created_at: {
+                gte: new Date(`${currentYear}-01-01`),
+                lt: new Date(`${currentYear + 1}-01-01`),
+                },
+            },
+        });
+
+        const newRunningYear = maxRunning._max.year_running + 1;
+        const newRunningCode = newRunningYear.toString().padStart(5, "0");
+        const yearCode = (currentYear + 543).toString().substring(2, 4);
+        const monthCode = currentMonth.toString().padStart(2, "0");
+
+        const form_number = `${yearCode}${monthCode}${newRunningCode}`;
+
+        if (item.jcoms_no == null) {
+            await prisma[$table].update({
+                where: {
+                id: Number(id),
+                },
+                    data: {
+                    form_number: form_number,
+                    year_running: newRunningYear,
+                },
+            });
+        }
+        return { form_number, year_running: newRunningYear };
+    } catch (error) {
+        console.error("Error generating form number:", error); // Log error for debugging
+        return null;
+    }
+};
+
 const methods = {
     async onGetAll(req, res) {
         try {
@@ -257,7 +313,7 @@ const methods = {
     async onGetByuuID(req, res) {
         try {
             const uuid = req.params.uuid;
-            
+
             if (!uuid) {
                 return res.status(400).json({ msg: "uuid is required" });
             }
@@ -281,7 +337,7 @@ const methods = {
             console.error("Error fetching item by uuID:", error);
             res.status(404).json({ msg: error.message });
         }
-    },    
+    },
 
     async onGetById(req, res) {
         try {
@@ -328,6 +384,12 @@ const methods = {
                 data: { ...value, created_by: req.user?.name },
             });
 
+            if(item){
+                const { form_number, year_running } = await generateFormNumber(item.id);
+                item.form_number = form_number;
+                item.year_running = year_running;
+            }
+
             res.status(201).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error creating item:", error);
@@ -353,6 +415,12 @@ const methods = {
                 },
                 data: { ...value, updated_by: req.user?.name },
             });
+
+            if(item.form_number == null) {
+                const { form_number, year_running } = await generateFormNumber(item.id);
+                item.form_number = form_number;
+                item.year_running = year_running;
+            }
 
             res.status(200).json({ ...item, msg: "success" });
         } catch (error) {

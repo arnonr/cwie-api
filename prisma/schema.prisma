@@ -61,6 +61,7 @@ model permission {
 model user_status {
     id         Int       @id @default(autoincrement())
     name       String    @unique
+    color      String?
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
@@ -392,6 +393,8 @@ model document {
 model form {
     id                            Int              @id @default(autoincrement())
     uuid                          String           @unique @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    form_number                   String?
+    year_running                  Int?
     student_id                    Int
     student_detail                student_profile? @relation(fields: [student_id], references: [id])
     company_id                    Int
@@ -485,6 +488,7 @@ model student_status {
 model form_status {
     id         Int       @id @default(autoincrement())
     name       String
+    color      String?
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)

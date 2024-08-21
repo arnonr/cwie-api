@@ -6,13 +6,14 @@ const prisma = new PrismaClient();
 const $table = "user_status";
 
 const filterData = (req) => {
-    const { id, code, name, is_active } = req.query;
+    const { id, color, name, is_active } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
         deleted_at: null,
         ...(id && { id: Number(id) }),
         ...(name && { name: { contains: name } }),
+        ...(color && { color: { contains: color } }),
         ...(is_active && { is_active: Number(is_active) }),
     };
 
@@ -21,6 +22,7 @@ const filterData = (req) => {
 
 const schema = Joi.object({
     name: Joi.string().required(),
+    color: Joi.string().allow(null, ""),
     is_active: Joi.boolean().default(true),
 });
 
@@ -28,6 +30,7 @@ const schema = Joi.object({
 const selectField = {
     id: true,
     name: true,
+    color: true,
     is_active: true,
 };
 
