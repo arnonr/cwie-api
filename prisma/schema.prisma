@@ -216,7 +216,7 @@ model staff_profile {
     prefix            String?
     firstname         String
     surname           String
-    citizen_id        String      @db.VarChar(32)
+    citizen_id        String?      @db.VarChar(32)
     phone             String?     @db.VarChar(32)
     email             String?
     address           String?     @db.Text

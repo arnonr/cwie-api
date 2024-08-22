@@ -95,6 +95,28 @@ const upsertStudentProfile = async (user_id, data) => {
     }
 };
 
+const upsertStaffProfile = async (user_id, data) => {
+    try {
+        const response = await prisma.staff_profile.upsert({
+            where: {
+                user_id: user_id,
+            },
+            create: {
+                user_id: user_id,
+                ...data,
+            },
+            update: {
+                ...data,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
+
 
 
 const decryptPassword = (encryptedPassword) => {
@@ -220,6 +242,7 @@ const methods = {
 
             let user_id = null;
             let username = null;
+            let profile = null;
 
             const item = await prisma[$table].findUnique({
                 select: { ...selectField },
@@ -248,56 +271,12 @@ const methods = {
             );
 
             if (accountInfo) {
-                username = accountInfo.userInfo.username;
-                // const {
-                //     username,
-                //     displayname,
-                //     pid,
-                //     person_key,
-                //     email,
-                //     account_type,
-                // } = userInfo;
 
-                // const nameArray = userInfo.displayname.split(" ");
-                // const surname = nameArray.slice(1).join(" ");
-                // console.log(accountInfo);
-                // userInfo: {
-                //     username: 's5402041520261',
-                //     displayname: 'ศิวกร หลงสมบูรณ์',
-                //     firstname_en: 'SIWAKORN',
-                //     lastname_en: 'LONGSOMBOON',
-                //     pid: '2331400026249',
-                //     person_key: '',
-                //     email: 's5402041520261@kmutnb.ac.th',
-                //     account_type: 'alumni'
-                //   },
-                //   studentInfo: {
-                //     STU_CODE: '5402041520261',
-                //     PRE_NAME_THAI: 'นาย',
-                //     STU_FIRST_NAME_THAI: 'ศิวกร',
-                //     STU_LAST_NAME_THAI: 'หลงสมบูรณ์',
-                //     PRE_NAME_ENG: 'Mr. ',
-                //     STU_FIRST_NAME_ENG: 'SIWAKORN',
-                //     STU_LAST_NAME_ENG: 'LONGSOMBOON',
-                //     SEX: 'M',
-                //     LEVEL_CODE: 63,
-                //     LEVEL_DESC: 'ปริญญาตรีเทียบโอน 2 - 3 ปี',
-                //     FAC_CODE: '02',
-                //     FAC_NAME_THAI: 'คณะครุศาสตร์อุตสาหกรรม',
-                //     DEPT_CODE: '0204',
-                //     DEPT_NAME_THAI: 'คอมพิวเตอร์ศึกษา',
-                //     DIV_CODE: '020401',
-                //     DIV_NAME_THAI: 'เทคโนโลยีคอมพิวเตอร์',
-                //     DIV_SHRT_NAME: 'TCT',
-                //     CAMPUS_ID: 10,
-                //     CAMPUS_NAME: 'มจพ. กรุงเทพฯ',
-                //     CURR_CODE: null,
-                //     STU_YEAR: 3,
-                //     BRANCH_CODE: 10,
-                //     BRANCH_NAME: 'มจพ. กรุงเทพฯ',
-                //     STU_STATUS: 40,
-                //     STU_STATUS_DESC: 'สำเร็จการศึกษา'
-                //   }
+                let status_id = null;
+                let group_id = null;
+                let type_id = null;
+
+                username = accountInfo.userInfo.username;
                 const userInfo = accountInfo.userInfo;
                 const displayname = userInfo.displayname;
                 const account_type = userInfo.account_type;
@@ -305,14 +284,42 @@ const methods = {
                 const person_key = userInfo.person_key;
                 const pid = userInfo.pid;
 
-                let status_id = 1;
-                let group_id = null;
-                let type_id = null;
-
                 if (account_type == "student" || account_type == "alumni") {
                     status_id = 2; // อนุมัติ
-                    group_id = 3; // นักศึกษา
-                    type_id = 1; // นักศึกษา
+                    group_id = 7; // นักศึกษา
+                }else{
+
+                    if (!req.body.group_id) throw new Error("group_id is required");
+                    group_id = req.body.group_id;
+                    status_id = 1; /* รอตรวจสอบ */
+                }
+
+                type_id = group_id;
+
+                const user = await prisma[$table].upsert({
+                    where: {
+                        username: username,
+                    },
+                    create: {
+                        username: username,
+                        name: displayname,
+                        email: req.body.email,
+                        status_id: status_id,
+                        group_id: group_id,
+                        type_id: type_id,
+                        citizen_id: pid,
+                        account_type: account_type,
+                        created_by: username,
+                        updated_by: username
+                    },
+                    update: {
+                        name: displayname,
+                    },
+                });
+
+                user_id = user.id;
+
+                if (account_type == "student" || account_type == "alumni") {
 
                     if(accountInfo.studentInfo){
                         const fac_code = accountInfo.studentInfo.FAC_CODE;
@@ -325,9 +332,6 @@ const methods = {
                         const prefix = accountInfo.studentInfo.PRE_NAME_THAI;
                         const firstname = accountInfo.studentInfo.STU_FIRST_NAME_THAI;
                         const surname = accountInfo.studentInfo.STU_LAST_NAME_THAI;
-                        // const email = accountInfo.studentInfo.STU_EMAIL;
-                        // console.log(fac_code, fac_name, dept_code, dept_name, div_code);
-                        // console.log(fac_code, dept_code, div_code);
 
                         const fac_id = await facultyController.getIdByCreate(fac_code, fac_name);
                         const dept_id = await departmentController.getIdByCreate(dept_code, dept_name, fac_id);
@@ -344,48 +348,51 @@ const methods = {
                             division_id: div_id,
                             citizen_id: null,
                             status_id: 1,
+                            phone: req.body.phone,
+                            email: req.body.email,
+                            address: req.body.address,
                         }
-                        const profile = await upsertStudentProfile(user_id, data);
+                        profile = await upsertStudentProfile(user_id, data);
                     }
 
+                }else{
+
+                    if(accountInfo.personnelInfo){
+                        const person_key = accountInfo.personnelInfo.person_key;
+                        const fac_code = accountInfo.personnelInfo.faculty_code;
+                        const fac_name = accountInfo.personnelInfo.faculty_name;
+                        const dept_code = accountInfo.personnelInfo.department_code;
+                        const dept_name = accountInfo.personnelInfo.department_name;
+                        const div_code = accountInfo.personnelInfo.division_code;
+                        const div_name = accountInfo.personnelInfo.division_name;
+                        const prefix = accountInfo.personnelInfo.full_prefix_name_th
+                        const firstname = accountInfo.personnelInfo.firstname_th;
+                        const surname = accountInfo.personnelInfo.lastname_th;
+
+                        const fac_id = await facultyController.getIdByCreate(fac_code, fac_name);
+                        const dept_id = await departmentController.getIdByCreate(dept_code, dept_name, fac_id);
+                        const div_id = await divisionController.getIdByCreate(div_code, div_name, dept_id);
+
+                        const data = {
+                            person_key: person_key,
+                            prefix: prefix,
+                            firstname: firstname,
+                            surname: surname,
+                            faculty_id: fac_id,
+                            department_id: dept_id,
+                            division_id: div_id,
+                            citizen_id: null,
+                            phone: req.body.phone,
+                            email: req.body.email,
+                            address: req.body.address,
+                        }
+
+                        console.log(data);
+                        profile = await upsertStaffProfile(user_id, data);
+                    }
                 }
-                // else {
-                //     group_id = req.body.group_id;
-                // }
 
-                type_id = group_id;
-                // firstname: nameArray[0],
-                // surname: surname,
-                console.log("username", username);
-                const newUser = await prisma[$table].upsert({
-                    where: {
-                        username: username,
-                    },
-                    create: {
-                        username: username,
-                        name: displayname,
-                        email: email,
-                        status_id: status_id,
-                        group_id: group_id,
-                        type_id: type_id,
-                        citizen_id: pid,
-                        account_type: account_type,
-                        created_by: username,
-                        updated_by: username
-                    },
-                    update: {
-                        name: displayname,
-                        // email: email,
-                        // status_id: status_id,
-                        // group_id: group_id,
-                        // type_id: type_id,
-                        // citizen_id: pid,
-                        // account_type: account_type,
-                        // updated_by: username
-                    },
-                });
-
-                res.status(200).json({ ...newUser, icit_account: accountInfo, msg: "success" });
+                res.status(200).json({ ...user, profile, icit_account: accountInfo, msg: "success" });
             }else{
                 throw new Error("ICIT account not found");
             }

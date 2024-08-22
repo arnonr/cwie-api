@@ -50,6 +50,9 @@ const selectField = {
 };
 
 const getIdByCreate = async (code, name, department_id) => {
+
+    if(!code || !name || !department_id) return null;
+
     const item = await prisma[$table].upsert({
         where: {
             code: code,
