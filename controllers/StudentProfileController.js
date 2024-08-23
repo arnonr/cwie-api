@@ -10,7 +10,6 @@ const selectField = {
     id: true,
     uuid: true,
     user_id: true,
-    person_key: true,
     prefix: true,
     firstname: true,
     surname: true,
@@ -92,7 +91,7 @@ const selectField = {
     is_active: true,
 };
 const filterData = (req) => {
-    const { id, uuid, user_id, person_key, firstname, surname, citizen_id, phone, email, address, faculty_id, department_id, division_id, province_id, district_id, sub_district_id, student_code, class_year, class_room, advisor_id, gpa, contact1_name, contact1_relation, contact1_phone, contact2_name, contact2_relation, contact2_phone, blood_group, congenital_disease, drug_allergy, emergency_phone, status_id, is_active } = req.query;
+    const { id, uuid, user_id, firstname, surname, citizen_id, phone, email, address, faculty_id, department_id, division_id, province_id, district_id, sub_district_id, student_code, class_year, class_room, advisor_id, gpa, contact1_name, contact1_relation, contact1_phone, contact2_name, contact2_relation, contact2_phone, blood_group, congenital_disease, drug_allergy, emergency_phone, status_id, is_active } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
@@ -100,7 +99,6 @@ const filterData = (req) => {
         ...(id && { id: Number(id) }),
         ...(uuid && { uuid: uuid }),
         ...(user_id && { user_id: Number(user_id) }),
-        ...(person_key && { person_key: person_key }),
         ...(firstname && { firstname: { contains: firstname } }),
         ...(surname && { surname: { contains: surname } }),
         ...(citizen_id && { citizen_id: citizen_id }),
@@ -137,7 +135,6 @@ const filterData = (req) => {
 
 const schema = Joi.object({
     user_id: Joi.number().required(),
-    person_key: Joi.string().allow(null, ""),
     prefix: Joi.string().allow(null, ""),
     firstname: Joi.string().allow(null, ""),
     surname: Joi.string().allow(null, ""),
