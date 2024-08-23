@@ -30,6 +30,7 @@ const selectField = {
     status_detail: {
         select: {
             name: true,
+            color: true,
         },
     },
     permissions: {
@@ -38,19 +39,26 @@ const selectField = {
             action: true,
         },
     },
-    teacher_profile: {
-
-    },
-    staff_profile: {
-
-    },
-    student_profile: {
-
-    },
+    teacher_profile: {},
+    staff_profile: {},
+    student_profile: {},
 };
 
 const filterData = (req) => {
-    const { id, uuid, group_id, type_id, status_id, username, name, citizen_id, phone, email, account_type, is_active } = req.query;
+    const {
+        id,
+        uuid,
+        group_id,
+        type_id,
+        status_id,
+        username,
+        name,
+        citizen_id,
+        phone,
+        email,
+        account_type,
+        is_active,
+    } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
@@ -60,7 +68,7 @@ const filterData = (req) => {
         ...(group_id && { group_id: Number(group_id) }),
         ...(type_id && { type_id: Number(type_id) }),
         ...(status_id && { status_id: Number(status_id) }),
-        ...(username && { username: username } ),
+        ...(username && { username: username }),
         ...(name && { name: { contains: name } }),
         ...(citizen_id && { citizen_id: { contains: citizen_id } }),
         ...(phone && { phone: { contains: phone } }),
@@ -85,7 +93,6 @@ const schema = Joi.object({
     is_active: Joi.boolean().default(true),
     password: Joi.string().allow(null, ""),
 });
-
 
 const methods = {
     async onGetAll(req, res) {
@@ -281,8 +288,6 @@ const methods = {
             res.status(500).json({ msg: error.message });
         }
     },
-
-
 };
 
 module.exports = { ...methods };

@@ -32,8 +32,8 @@ const selectField = {
     division_id: true,
     division_detail: {
         select: {
-            name: true
-        }
+            name: true,
+        },
     },
     province_id: true,
     province_detail: {
@@ -81,6 +81,7 @@ const selectField = {
     status_detail: {
         select: {
             name: true,
+            color: true,
         },
     },
     photo_file: true,
@@ -91,7 +92,40 @@ const selectField = {
     is_active: true,
 };
 const filterData = (req) => {
-    const { id, uuid, user_id, firstname, surname, citizen_id, phone, email, address, faculty_id, department_id, division_id, province_id, district_id, sub_district_id, student_code, class_year, class_room, advisor_id, gpa, contact1_name, contact1_relation, contact1_phone, contact2_name, contact2_relation, contact2_phone, blood_group, congenital_disease, drug_allergy, emergency_phone, status_id, is_active } = req.query;
+    const {
+        id,
+        uuid,
+        user_id,
+        firstname,
+        surname,
+        citizen_id,
+        phone,
+        email,
+        address,
+        faculty_id,
+        department_id,
+        division_id,
+        province_id,
+        district_id,
+        sub_district_id,
+        student_code,
+        class_year,
+        class_room,
+        advisor_id,
+        gpa,
+        contact1_name,
+        contact1_relation,
+        contact1_phone,
+        contact2_name,
+        contact2_relation,
+        contact2_phone,
+        blood_group,
+        congenital_disease,
+        drug_allergy,
+        emergency_phone,
+        status_id,
+        is_active,
+    } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
@@ -117,15 +151,23 @@ const filterData = (req) => {
         ...(advisor_id && { advisor_id: Number(advisor_id) }),
         ...(gpa && { gpa: { contains: gpa } }),
         ...(contact1_name && { contact1_name: { contains: contact1_name } }),
-        ...(contact1_relation && { contact1_relation: { contains: contact1_relation } }),
+        ...(contact1_relation && {
+            contact1_relation: { contains: contact1_relation },
+        }),
         ...(contact1_phone && { contact1_phone: { contains: contact1_phone } }),
         ...(contact2_name && { contact2_name: { contains: contact2_name } }),
-        ...(contact2_relation && { contact2_relation: { contains: contact2_relation } }),
+        ...(contact2_relation && {
+            contact2_relation: { contains: contact2_relation },
+        }),
         ...(contact2_phone && { contact2_phone: { contains: contact2_phone } }),
         ...(blood_group && { blood_group: { contains: blood_group } }),
-        ...(congenital_disease && { congenital_disease: { contains: congenital_disease } }),
+        ...(congenital_disease && {
+            congenital_disease: { contains: congenital_disease },
+        }),
         ...(drug_allergy && { drug_allergy: { contains: drug_allergy } }),
-        ...(emergency_phone && { emergency_phone: { contains: emergency_phone } }),
+        ...(emergency_phone && {
+            emergency_phone: { contains: emergency_phone },
+        }),
         ...(status_id && { status_id: Number(status_id) }),
         ...(is_active && { is_active: Number(is_active) }),
     };
@@ -219,7 +261,7 @@ const methods = {
             });
         } catch (error) {
             console.error("Error fetching item by ID:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(404).json({ msg: error.message });
@@ -242,7 +284,7 @@ const methods = {
             res.status(201).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error creating item:", error);
-            if(error.code === "P2002") {
+            if (error.code === "P2002") {
                 return res.status(409).json({ msg: "Item already exists" });
             }
             res.status(500).json({ msg: error.message });
@@ -268,7 +310,7 @@ const methods = {
             res.status(200).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error updating item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
@@ -286,13 +328,13 @@ const methods = {
             await prisma[$table].delete({
                 where: {
                     id: Number(id),
-                }
+                },
             });
 
             res.status(200).json({ msg: "success" });
         } catch (error) {
             console.error("Error deleting item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
