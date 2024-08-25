@@ -1,10 +1,115 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
-
+const axios = require('axios');
 const prisma = new PrismaClient();
 const $table = "teacher_profile";
 
+const facultyController = require("./FacultyController");
+const departmentController = require("./DepartmentController");
+const hrisFindPersonnel = async (searchParams) => {
+    try {
+
+        if(searchParams.person_key == null && searchParams.firstname == null && searchParams.lastname == null && searchParams.position_type_id == null) {
+            // return "Please enter search parameter";
+            throw new Error("Search parameter must be defined");
+        }
+
+        dataParams = {}
+
+        if(searchParams.firstname)
+            dataParams['firstname'] = searchParams.firstname;
+
+        if(searchParams.lastname)
+            dataParams['lastname'] = searchParams.lastname;
+
+        if(searchParams.person_key)
+            dataParams['person_key'] = searchParams.person_key;
+
+        if(searchParams.position_type_id)
+            dataParams['position_type_id'] = searchParams.position_type_id;
+
+        if(searchParams.person_key)
+            dataParams['person_key'] = searchParams.person_key;
+
+        if(searchParams.faculty_code)
+            dataParams['faculty_code'] = searchParams.faculty_code;
+
+        if(searchParams.department_code)
+            dataParams['department_code'] = searchParams.department_code;
+
+        // console.log(dataParams);
+
+        const config = {
+            method: "post",
+            url: "https://api.hris.kmutnb.ac.th/api/personnel-api/list-personnel",
+            headers: { Authorization: "Bearer " + process.env.HRIS_TOKEN },
+            data: dataParams,
+        };
+
+        const response = await axios(config);
+        if (response.status === 404) {
+            return null;
+        }
+        // console.log(response);
+        return response.data.data;
+    }catch (error) {
+        // console.log(error);
+        throw error;
+    }
+};
+
+const hrisPersonnelInfo = async (person_key) => {
+    try {
+        if(person_key == null) {
+            // return "Please enter search parameter";
+            throw new Error("person_key is required");
+        }
+
+        dataParams = {}
+        dataParams['person_key'] = person_key;
+        dataParams['get_work_info'] = 1;
+
+        const config = {
+            method: "post",
+            url: "https://api.hris.kmutnb.ac.th/api/personnel-api/personnel-detail",
+            headers: { Authorization: "Bearer " + process.env.HRIS_TOKEN },
+            data: dataParams,
+        };
+
+
+        const response = await axios(config);
+        // console.log(response);
+        // if (response.status === 404) {
+        //     return null;
+        // }
+        return response.data;
+    }catch (error) {
+        throw error;
+    }
+};
+
+const upsertTeacherProfile = async (person_key, data) => {
+    try {
+        const response = await prisma.teacher_profile.upsert({
+            where: {
+                person_key: person_key,
+            },
+            create: {
+                person_key: person_key,
+                ...data,
+            },
+            update: {
+                ...data,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
 // ฟิลด์ที่ต้องการ Select รวมถึง join
 const selectField = {
     id: true,
@@ -238,6 +343,102 @@ const methods = {
             res.status(400).json({ msg: error.message });
         }
     },
+
+    async onHrisFindPersonnel(req, res) {
+        try{
+            const data = await hrisFindPersonnel(req.query);
+            res.status(200).json({ data: data, msg: "success" });
+        }catch(error){
+            // console.error("Error fetching data:", error);
+            res.status(500).json({ msg: error.message });
+        }
+    },
+
+    async onHrisSyncTeacher(req, res) {
+        try{
+            req.query.position_type_id = 1;
+            const data = await hrisFindPersonnel(req.query);
+            // Now you can work with the peopleData array
+            for (const person of data) {
+                const person_key = person.person_key;
+                const firstname_th = person.firstname_th;
+                const lastname_th = person.lastname_th;
+                const firstname_en = person.firstname_en;
+                const lastname_en = person.lastname_en;
+                const fac_code = person.faculty_code;
+                const department_code = person.department_code;
+
+                const fac_id = await facultyController.getIdByCode(fac_code);
+                const dept_id = await departmentController.getIdByCode(department_code);
+
+                const data = {
+                    person_key: person_key,
+                    prefix: null,
+                    firstname: firstname_th,
+                    surname: lastname_th,
+                    faculty_id: fac_id,
+                    department_id: dept_id,
+                    division_id: null,
+                    citizen_id: null,
+                    phone: null,
+                    email: null,
+                    address: null,
+                }
+
+                // console.log(data);
+                await upsertTeacherProfile(person_key, data);
+            }
+
+            res.status(200).json({ data: data, msg: "success" });
+        }catch(error){
+            // console.error("Error fetching data:", error);
+            res.status(500).json({ msg: error.message });
+        }
+    },
+
+    async onHrisSyncTeacherByPersonKey(req, res) {
+        try{
+            const person_key = req.params.person_key;
+            const data = await hrisPersonnelInfo(person_key);
+            console.log(data);
+            if(data !== null) {
+                const person_key = data.person_key;
+                const prefix = data.person_info.full_prefix_name_th;
+                const firstname_th = data.person_info.firstname_th;
+                const lastname_th = data.person_info.lastname_th;
+                const firstname_en = data.person_info.firstname_en;
+                const lastname_en = data.person_info.lastname_en;
+                const fac_code = data.work_info.faculty_code;
+                const department_code = data.work_info.department_code;
+
+                const fac_id = await facultyController.getIdByCode(fac_code);
+                const dept_id = await departmentController.getIdByCode(department_code);
+
+                const personData = {
+                    person_key: person_key,
+                    prefix: prefix,
+                    firstname: firstname_th,
+                    surname: lastname_th,
+                    faculty_id: fac_id,
+                    department_id: dept_id,
+                    division_id: null,
+                    citizen_id: null,
+                    phone: null,
+                    email: null,
+                    address: null,
+                }
+                // console.log(personData);
+
+                const item = await upsertTeacherProfile(person_key, personData);
+                return res.status(200).json({ ...item, msg: "success" });
+            }
+            // console.log(data);
+            res.status(200).json({ data: data, msg: "success" });
+        }catch(error){
+            // console.error("Error fetching data:", error);
+            res.status(500).json({ msg: error.message });
+        }
+    }
 };
 
 module.exports = { ...methods };

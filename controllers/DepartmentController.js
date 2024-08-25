@@ -1,9 +1,38 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
+const axios = require('axios');
 const { countDataAndOrder } = require("../utils/pagination");
 
 const prisma = new PrismaClient();
 const $table = "department";
+const facultyController = require("./FacultyController");
+
+const hrisDepartment = async (searchParams) => {
+    try {
+
+        dataParams = {}
+        if(searchParams.faculty_code)
+            dataParams['faculty_code'] = searchParams.faculty_code;
+
+        const config = {
+            method: "post",
+            url: "https://api.hris.kmutnb.ac.th/api/masterdata-api/list-department",
+            headers: { Authorization: "Bearer " + process.env.HRIS_TOKEN },
+            data: dataParams,
+        };
+
+        const response = await axios(config);
+        console.log(response);
+        if (response.status === 404) {
+            return null;
+        }
+
+        return response.data.data;
+    }catch (error) {
+        // console.log(error);
+        throw error;
+    }
+};
 
 const filterData = (req) => {
     const { id, code, name, phone, email, faculty_id, is_active } = req.query;
@@ -47,6 +76,15 @@ const selectField = {
             name: true,
         },
     },
+};
+
+const getIdByCode = async (code) => {
+    const item = await prisma[$table].findUnique({
+        where: {
+            code,
+        },
+    });
+    return item?.id;
 };
 
 const getIdByCreate = async (code, name, faculty_id) => {
@@ -201,6 +239,26 @@ const methods = {
             res.status(400).json({ msg: error.message });
         }
     },
+
+    async onHrisSyncDepartment(req, res) {
+        try {
+            const data = await hrisDepartment(req.query);
+
+            for (const department of data) {
+                const dept_code = department.department_code;
+                const dept_name = department.department_name_th;
+                const fac_code = department.faculty_code;
+                const fac_name = department.faculty_name_th;
+
+                const fac_id = await facultyController.getIdByCreate(fac_code, fac_name);
+                const dept_id = await getIdByCreate(dept_code, dept_name, fac_id);
+            }
+
+            res.status(200).json({data: data, msg: "success" });
+        } catch (error) {
+            res.status(500).json({ msg: error.message });
+        }
+    },
 };
 
-module.exports = { ...methods, getIdByCreate };
+module.exports = { ...methods, getIdByCreate, getIdByCode };

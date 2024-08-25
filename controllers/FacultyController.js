@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
-
+const axios = require('axios');
 const prisma = new PrismaClient();
 const $table = "faculty";
 
@@ -50,8 +50,35 @@ const selectField = {
     },
 };
 
+const hrisFaculty = async () => {
+    try {
+
+        dataParams = {}
+
+        const config = {
+            method: "post",
+            url: "https://api.hris.kmutnb.ac.th/api/masterdata-api/list-faculty",
+            headers: { Authorization: "Bearer " + process.env.HRIS_TOKEN },
+            data: dataParams,
+        };
+
+        const response = await axios(config);
+        // console.log(response);
+        if (response.status === 404) {
+            return null;
+        }
+
+        return response.data.data;
+
+    }catch (error) {
+        // console.log(error);
+        throw error;
+    }
+};
+
 const getIdByCode = async (code) => {
-    const item = await prisma.faculty.findUnique({
+
+    const item = await prisma[$table].findUnique({
         where: {
             code,
         },
@@ -210,6 +237,24 @@ const methods = {
             res.status(400).json({ msg: error.message });
         }
     },
+
+    async onHrisSyncFaculty(req, res) {
+        try {
+            const data = await hrisFaculty(req.query);
+            // console.log(data);
+            for (const faculty of data) {
+                const faculty_code = faculty.faculty_code;
+                const faculty_name_th = faculty.faculty_name_th;
+
+                const fac_id = await getIdByCreate(faculty_code, faculty_name_th);
+            }
+
+            res.status(200).json({data: data, msg: "success" });
+        } catch (error) {
+            res.status(500).json({ msg: error.message });
+        }
+    },
+
 };
 
-module.exports = { ...methods, getIdByCreate };
+module.exports = { ...methods, getIdByCreate, getIdByCode };

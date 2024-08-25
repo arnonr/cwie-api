@@ -3,6 +3,7 @@ const router = express.Router();
 
 const controllers = require("../../controllers/FacultyController");
 
+router.post("/hris-sync-faculty", controllers.onHrisSyncFaculty);
 router.get("/", controllers.onGetAll);
 router.get("/:id", controllers.onGetById);
 

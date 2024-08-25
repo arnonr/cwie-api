@@ -3,6 +3,7 @@ const router = express.Router();
 
 const controllers = require("../../controllers/DepartmentController");
 
+router.post("/hris-sync-department", controllers.onHrisSyncDepartment);
 router.get("/", controllers.onGetAll);
 router.get("/:id", controllers.onGetById);
 

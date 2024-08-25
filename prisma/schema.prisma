@@ -103,11 +103,11 @@ model teacher_profile {
     executive_position     String?
     user_id               Int?              @unique
     user                  user?             @relation(fields: [user_id], references: [id], name: "TeacherProfileToUser")
-    person_key            String
+    person_key            String            @unique
     prefix                String?
     firstname             String
     surname               String
-    citizen_id            String            @db.VarChar(32)
+    citizen_id            String?            @db.VarChar(32)
     phone                 String?           @db.VarChar(32)
     email                 String?
     address               String?           @db.Text
@@ -475,6 +475,7 @@ model form {
 model student_status {
     id              Int               @id @default(autoincrement())
     name            String
+    color           String?
     is_active       Boolean           @default(true)
     created_at      DateTime          @default(now())
     created_by      String?           @db.VarChar(255)
