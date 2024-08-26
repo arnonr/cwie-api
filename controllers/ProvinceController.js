@@ -132,11 +132,6 @@ const methods = {
             const transformedAddresses = transformPrismaResult(items);
             const mappedAddresses = addresses_mapping(transformedAddresses);
 
-            // return {
-            //     addresses: transformedAddresses,
-            //     addresses_mapping: () => mappedAddresses,
-            // };
-
             res.status(200).json({
                 addresses: transformedAddresses,
                 addresses_mapping: () => mappedAddresses,
