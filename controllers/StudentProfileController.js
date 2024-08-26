@@ -245,9 +245,9 @@ const createSchema = Joi.object({
     sub_district_id: baseSchema.sub_district_id.required(),
     status_id: baseSchema.status_id.required(),
     user_id: baseSchema.user_id.required(),
-}).unknown(true);
+});
 
-const updateSchema = Joi.object(baseSchema).unknown(true);
+const updateSchema = Joi.object(baseSchema);
 
 const validateCreate = (data) => createSchema.validate(data);
 const validateUpdate = (data) => updateSchema.validate(data);
