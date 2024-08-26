@@ -138,7 +138,7 @@ const methods = {
             // };
 
             res.status(200).json({
-                addresses: mappedAddresses,
+                addresses: transformedAddresses,
                 addresses_mapping: () => mappedAddresses,
             });
         } catch (error) {
