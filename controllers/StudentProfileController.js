@@ -197,26 +197,28 @@ const filterData = (req) => {
     return $where;
 };
 
-const schema = Joi.object({
-    user_id: Joi.number().required(),
+const baseSchema = {
+    uuid: Joi.string().uuid(),
     prefix: Joi.string().allow(null, ""),
     firstname: Joi.string().allow(null, ""),
     surname: Joi.string().allow(null, ""),
     citizen_id: Joi.string().allow(null, ""),
     phone: Joi.string().allow(null, ""),
-    email: Joi.string().allow(null, ""),
+    email: Joi.string().email().allow(null, ""),
     address: Joi.string().allow(null, ""),
-    faculty_id: Joi.number().required(),
-    department_id: Joi.number().required(),
-    division_id: Joi.number().required(),
-    province_id: Joi.number().required(),
-    district_id: Joi.number().required(),
-    sub_district_id: Joi.number().required(),
+    faculty_id: Joi.number(),
+    department_id: Joi.number(),
+    division_id: Joi.number(),
+    province_id: Joi.number(),
+    district_id: Joi.number(),
+    sub_district_id: Joi.number(),
     student_code: Joi.string().allow(null, ""),
     class_year: Joi.string().allow(null, ""),
     class_room: Joi.string().allow(null, ""),
-    advisor_id: Joi.number().allow(null, ""),
-    gpa: Joi.number().precision(2).max(4.0).allow(null, ""),
+    advisor_id: Joi.number().allow(null),
+    gpa: Joi.number().precision(2).max(4.0).allow(null),
+    height: Joi.number().allow(null),
+    weight: Joi.number().allow(null),
     contact1_name: Joi.string().allow(null, ""),
     contact1_relation: Joi.string().allow(null, ""),
     contact1_phone: Joi.string().allow(null, ""),
@@ -227,10 +229,28 @@ const schema = Joi.object({
     congenital_disease: Joi.string().allow(null, ""),
     drug_allergy: Joi.string().allow(null, ""),
     emergency_phone: Joi.string().allow(null, ""),
-    status_id: Joi.number().required(),
+    status_id: Joi.number(),
     is_active: Joi.boolean().default(true),
     photo_file: Joi.string().allow(null, ""),
-});
+    user_id: Joi.number(),
+};
+
+const createSchema = Joi.object({
+    ...baseSchema,
+    faculty_id: baseSchema.faculty_id.required(),
+    department_id: baseSchema.department_id.required(),
+    division_id: baseSchema.division_id.required(),
+    province_id: baseSchema.province_id.required(),
+    district_id: baseSchema.district_id.required(),
+    sub_district_id: baseSchema.sub_district_id.required(),
+    status_id: baseSchema.status_id.required(),
+    user_id: baseSchema.user_id.required(),
+}).unknown(true);
+
+const updateSchema = Joi.object(baseSchema).unknown(true);
+
+const validateCreate = (data) => createSchema.validate(data);
+const validateUpdate = (data) => updateSchema.validate(data);
 
 const methods = {
     async onGetAll(req, res) {
@@ -294,7 +314,8 @@ const methods = {
     // สร้าง
     async onCreate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            // const { error, value } = schema.validate(req.body);
+            const { error, value } = validateCreate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
@@ -331,7 +352,8 @@ const methods = {
     // แก้ไข
     async onUpdate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            // const { error, value } = schema.validate(req.body);
+            const { error, value } = validateUpdate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
