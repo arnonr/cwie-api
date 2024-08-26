@@ -4,6 +4,7 @@ const cacheMiddleware = require("../middleware/cacheMiddleware"); // import midd
 
 const controllers = require("../../controllers/ProvinceController");
 
+router.get("/thailand", cacheMiddleware, controllers.onGetThailand);
 router.get("/", cacheMiddleware, controllers.onGetAll);
 router.get("/:id", controllers.onGetById);
 

@@ -541,6 +541,7 @@ model province {
     forms_response_as_province  form[]            @relation("responseProvinceRelation")
     forms_as_province           form[]            @relation("provinceRelation")
     forms_workplace_as_province form[]            @relation("workplaceProvinceRelation")
+    district                    district[]        @relation("provinceRelation")
 }
 
 model district {
@@ -551,11 +552,13 @@ model district {
     created_at                  DateTime          @default(now())
     updated_at                  DateTime          @updatedAt
     deleted_at                  DateTime?
+    province                    province?         @relation("provinceRelation", fields: [province_id], references: [id])
     teacher_profile             teacher_profile[]
     student_profile             student_profile[]
     company                     company[]
     forms_as_district           form[]            @relation("districtRelation")
     forms_workplace_as_district form[]            @relation("workplaceDistrictRelation")
+    sub_district                sub_district[]    @relation("districtRelation")
 }
 
 model sub_district {
@@ -570,6 +573,7 @@ model sub_district {
     updated_at                      DateTime          @updatedAt
     updated_by                      String?           @db.VarChar(255)
     deleted_at                      DateTime?
+    district                        district?         @relation("districtRelation", fields: [district_id], references: [id])
     teacher_profile                 teacher_profile[]
     student_profile                 student_profile[]
     company                         company[]
