@@ -2,8 +2,30 @@ const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
 
-const prisma = new PrismaClient();
+const uploadController = require("./UploadsController");
 const $table = "student_profile";
+
+// const prisma = new PrismaClient();
+const prisma = new PrismaClient().$extends({
+    result: {
+        student_profile: {  //extend Model name
+            photo_file: { // the name of the new computed field
+                needs: { /* field */
+                    photo_file: true,
+                },
+                compute(model) {
+                    let photo_file = null;
+
+                    if (model.photo_file != null) {
+                        photo_file = process.env.PATH_UPLOAD + model.photo_file;
+                    }
+
+                    return photo_file;
+                },
+            },
+        },
+    },
+});
 
 // ฟิลด์ที่ต้องการ Select รวมถึง join
 const selectField = {
@@ -190,11 +212,11 @@ const schema = Joi.object({
     province_id: Joi.number().required(),
     district_id: Joi.number().required(),
     sub_district_id: Joi.number().required(),
-    student_code: Joi.string().required(),
+    student_code: Joi.string().allow(null, ""),
     class_year: Joi.string().allow(null, ""),
     class_room: Joi.string().allow(null, ""),
     advisor_id: Joi.number().allow(null, ""),
-    gpa: Joi.number().precision(2).max(4.0).required(),
+    gpa: Joi.number().precision(2).max(4.0).allow(null, ""),
     contact1_name: Joi.string().allow(null, ""),
     contact1_relation: Joi.string().allow(null, ""),
     contact1_phone: Joi.string().allow(null, ""),
@@ -207,6 +229,7 @@ const schema = Joi.object({
     emergency_phone: Joi.string().allow(null, ""),
     status_id: Joi.number().required(),
     is_active: Joi.boolean().default(true),
+    photo_file: Joi.string().allow(null, ""),
 });
 
 const methods = {
@@ -277,6 +300,20 @@ const methods = {
                 return res.status(400).json({ msg: error.details[0].message });
             }
 
+            let photoFile = await uploadController.onUploadFile(
+                req,
+                "/student_profile/",
+                "photo_file"
+            );
+
+            if (photoFile == "error") {
+                return res.status(500).send("photo_file error");
+            }
+
+            if (photoFile) {
+                value.photo_file = photoFile;
+            }
+
             const item = await prisma[$table].create({
                 data: { ...value, created_by: req.user?.name },
             });
@@ -298,6 +335,20 @@ const methods = {
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
+            }
+
+            let photoFile = await uploadController.onUploadFile(
+                req,
+                "/student_profile/",
+                "photo_file"
+            );
+
+            if (photoFile == "error") {
+                return res.status(500).send("photo_file error");
+            }
+
+            if (photoFile) {
+                value.photo_file = photoFile;
             }
 
             const item = await prisma[$table].update({
