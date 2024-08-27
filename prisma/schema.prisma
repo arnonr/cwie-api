@@ -184,8 +184,8 @@ model student_profile {
     congenital_disease  String?          @db.Text
     drug_allergy        String?          @db.Text
     emergency_phone     String?          @db.VarChar(32)
-    height              Decimal?         @db.Decimal(3, 2)
-    weight              Decimal?         @db.Decimal(3, 2)
+    height              Decimal?         @db.Decimal(5, 2)
+    weight              Decimal?         @db.Decimal(5, 2)
     status_id           Int
     status_detail       student_status?  @relation(fields: [status_id], references: [id])
     photo_file          String?
