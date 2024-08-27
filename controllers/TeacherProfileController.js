@@ -2,11 +2,33 @@ const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
 const axios = require('axios');
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 const $table = "teacher_profile";
-
+const uploadController = require("./UploadsController");
 const facultyController = require("./FacultyController");
 const departmentController = require("./DepartmentController");
+
+const prisma = new PrismaClient().$extends({
+    result: {
+        teacher_profile: {  //extend Model name
+            signature_file: { // the name of the new computed field
+                needs: { /* field */
+                    signature_file: true,
+                },
+                compute(model) {
+                    let signature_file = null;
+
+                    if (model.signature_file != null) {
+                        signature_file = process.env.PATH_UPLOAD + model.signature_file;
+                    }
+
+                    return signature_file;
+                },
+            },
+        },
+    },
+});
+
 const hrisFindPersonnel = async (searchParams) => {
     try {
 
@@ -38,7 +60,6 @@ const hrisFindPersonnel = async (searchParams) => {
         if(searchParams.department_code)
             dataParams['department_code'] = searchParams.department_code;
 
-        // console.log(dataParams);
 
         const config = {
             method: "post",
@@ -191,10 +212,10 @@ const filterData = (req) => {
     return $where;
 };
 
-const schema = Joi.object({
+const baseSchema = {
     executive_position: Joi.string().allow(null, ""),
     signature_file: Joi.string().allow(null, ""),
-    user_id: Joi.number().required(),
+    user_id: Joi.number(),
     person_key: Joi.string().allow(null, ""),
     prefix: Joi.string().allow(null, ""),
     firstname: Joi.string().allow(null, ""),
@@ -203,14 +224,27 @@ const schema = Joi.object({
     phone: Joi.string().allow(null, ""),
     email: Joi.string().allow(null, ""),
     address: Joi.string().allow(null, ""),
-    faculty_id: Joi.number().required(),
-    department_id: Joi.number().required(),
-    division_id: Joi.number().required(),
-    province_id: Joi.number().required(),
-    district_id: Joi.number().required(),
-    sub_district_id: Joi.number().required(),
+    faculty_id: Joi.number(),
+    department_id: Joi.number(),
+    division_id: Joi.number(),
+    province_id: Joi.number(),
+    district_id: Joi.number(),
+    sub_district_id: Joi.number(),
     is_active: Joi.boolean().default(true),
+};
+
+const createSchema = Joi.object({
+    ...baseSchema,
+    faculty_id: baseSchema.faculty_id.required(),
+    department_id: baseSchema.department_id.required(),
+    division_id: baseSchema.division_id.required(),
 });
+
+const updateSchema = Joi.object(baseSchema);
+
+const validateCreate = (data) => createSchema.validate(data);
+const validateUpdate = (data) => updateSchema.validate(data);
+
 
 const methods = {
     async onGetAll(req, res) {
@@ -274,10 +308,24 @@ const methods = {
     // สร้าง
     async onCreate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            const { error, value } = validateCreate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
+            }
+
+            let signaturePath = await uploadController.onUploadFile(
+                req,
+                "/teacher_profile/",
+                "signature_file"
+            );
+
+            if (signaturePath == "error") {
+                return res.status(500).send("signature_file error");
+            }
+
+            if (signaturePath) {
+                value.signature_file = signaturePath;
             }
 
             const item = await prisma[$table].create({
@@ -297,10 +345,24 @@ const methods = {
     // แก้ไข
     async onUpdate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            const { error, value } = validateUpdate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
+            }
+
+            let signaturePath = await uploadController.onUploadFile(
+                req,
+                "/teacher_profile/",
+                "signature_file"
+            );
+
+            if (signaturePath == "error") {
+                return res.status(500).send("signature_file error");
+            }
+
+            if (signaturePath) {
+                value.signature_file = signaturePath;
             }
 
             const item = await prisma[$table].update({
