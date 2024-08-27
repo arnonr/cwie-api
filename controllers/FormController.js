@@ -1,9 +1,100 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
-
-const prisma = new PrismaClient();
+const uploadController = require("./UploadsController");
+// const prisma = new PrismaClient();
 const $table = "form";
+
+const prisma = new PrismaClient().$extends({
+    result: {
+        form: {  //extend Model name
+            response_document_file: { // the name of the new computed field
+                needs: { /* field */
+                    response_document_file: true,
+                },
+                compute(model) {
+                    let response_document_file = null;
+
+                    if (model.response_document_file != null) {
+                        response_document_file = process.env.PATH_UPLOAD + model.response_document_file;
+                    }
+
+                    return response_document_file;
+                },
+            },
+            workplace_googlemap_file: { // the name of the new computed field
+                needs: { /* field */
+                    workplace_googlemap_file: true,
+                },
+                compute(model) {
+                    let workplace_googlemap_file = null;
+
+                    if (model.workplace_googlemap_file != null) {
+                        workplace_googlemap_file = process.env.PATH_UPLOAD + model.workplace_googlemap_file;
+                    }
+
+                    return workplace_googlemap_file;
+                },
+            },
+            plan_document_file: { // the name of the new computed field
+                needs: { /* field */
+                    plan_document_file: true,
+                },
+                compute(model) {
+                    let plan_document_file = null;
+
+                    if (model.plan_document_file != null) {
+                        plan_document_file = process.env.PATH_UPLOAD + model.plan_document_file;
+                    }
+
+                    return plan_document_file;
+                },
+            },
+            namecard_file: { // the name of the new computed field
+                needs: { /* field */
+                    namecard_file: true,
+                },
+                compute(model) {
+                    let namecard_file = null;
+
+                    if (model.namecard_file != null) {
+                        namecard_file = process.env.PATH_UPLOAD + model.namecard_file;
+                    }
+
+                    return namecard_file;
+                },
+            },
+            ppt_report_file: { // the name of the new computed field
+                needs: { /* field */
+                    ppt_report_file: true,
+                },
+                compute(model) {
+                    let ppt_report_file = null;
+
+                    if (model.ppt_report_file != null) {
+                        ppt_report_file = process.env.PATH_UPLOAD + model.ppt_report_file;
+                    }
+
+                    return ppt_report_file;
+                },
+            },
+            poster_report_file: { // the name of the new computed field
+                needs: { /* field */
+                    poster_report_file: true,
+                },
+                compute(model) {
+                    let poster_report_file = null;
+
+                    if (model.poster_report_file != null) {
+                        poster_report_file = process.env.PATH_UPLOAD + model.poster_report_file;
+                    }
+
+                    return poster_report_file;
+                },
+            },
+        },
+    },
+});
 
 // ฟิลด์ที่ต้องการ Select รวมถึง join
 const selectField = {
@@ -172,14 +263,14 @@ const filterData = (req) => {
     return $where;
 };
 
-const schema = Joi.object({
-    student_id: Joi.number().required(),
-    company_id: Joi.number().required(),
-    semester_id: Joi.number().required(),
+const baseSchema = {
+    student_id: Joi.number(),
+    company_id: Joi.number(),
+    semester_id: Joi.number(),
     visitor_id: Joi.number(),
     division_head_id: Joi.number(),
     faculty_head_id: Joi.number(),
-    form_status_id: Joi.number().required(),
+    form_status_id: Joi.number(),
     start_date: Joi.date(),
     end_date: Joi.date(),
     co_name: Joi.string(),
@@ -225,7 +316,20 @@ const schema = Joi.object({
     send_at: Joi.date(),
     reject_status_id: Joi.number(),
     is_active: Joi.boolean(),
+};
+
+const createSchema = Joi.object({
+    ...baseSchema,
+    student_id: baseSchema.student_id.required(),
+    company_id: baseSchema.company_id.required(),
+    semester_id: baseSchema.semester_id.required(),
+    form_status_id: baseSchema.form_status_id.required(),
 });
+
+const updateSchema = Joi.object(baseSchema);
+
+const validateCreate = (data) => createSchema.validate(data);
+const validateUpdate = (data) => updateSchema.validate(data);
 
 const generateFormNumber = async (id) => {
     try{
@@ -374,7 +478,7 @@ const methods = {
     // สร้าง
     async onCreate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            const { error, value } = validateCreate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
@@ -403,11 +507,43 @@ const methods = {
     // แก้ไข
     async onUpdate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            const { error, value } = validateUpdate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
             }
+
+            const errors_upload = [];
+
+            const uploadFiles = async (req, fields) => {
+                const paths = {};
+                for (const field of fields) {
+                    let filePath = await uploadController.onUploadFile(req, "/form/", field);
+                    if (filePath === "error") {
+                        errors_upload.push(field);
+                    } else {
+                        paths[field] = filePath;
+                    }
+                }
+                return paths;
+            };
+
+            const fileFields = [
+                "response_document_file",
+                "workplace_googlemap_file",
+                "plan_document_file",
+                "namecard_file",
+                "ppt_report_file",
+                "poster_report_file",
+            ];
+
+            const uploadedPaths = await uploadFiles(req, fileFields);
+
+            if (errors_upload.length > 0) {
+                return res.status(500).json(errors_upload);
+            }
+
+            Object.assign(value, uploadedPaths);
 
             const item = await prisma[$table].update({
                 where: {
