@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
+const uploadController = require("./UploadsController");
 const $table = "company";
 
 const prisma = new PrismaClient().$extends({
@@ -50,8 +51,8 @@ const filterData = (req) => {
     return $where;
 };
 
-const schema = Joi.object({
-    name: Joi.string().required(),
+const baseSchema = {
+    name: Joi.string(),
     phone: Joi.string().allow(null, ""),
     email: Joi.string().allow(null, ""),
     website: Joi.string().allow(null, ""),
@@ -59,11 +60,24 @@ const schema = Joi.object({
     comment: Joi.string().allow(null, ""),
     namecard_file: Joi.string().allow(null, ""),
     address: Joi.string().allow(null, ""),
-    province_id: Joi.number().required(),
-    district_id: Joi.number().required(),
-    sub_district_id: Joi.number().required(),
-    is_active: Joi.boolean().required(),
+    province_id: Joi.number(),
+    district_id: Joi.number(),
+    sub_district_id: Joi.number(),
+    is_active: Joi.boolean().default(true),
+};
+
+const createSchema = Joi.object({
+    ...baseSchema,
+    name: baseSchema.name.required(),
+    province_id: baseSchema.province_id.required(),
+    district_id: baseSchema.district_id.required(),
+    sub_district_id: baseSchema.sub_district_id.required(),
 });
+
+const updateSchema = Joi.object(baseSchema);
+
+const validateCreate = (data) => createSchema.validate(data);
+const validateUpdate = (data) => updateSchema.validate(data);
 
 // ฟิลด์ที่ต้องการ Select รวมถึง join
 const selectField = {
@@ -157,7 +171,7 @@ const methods = {
     async onGetByuuID(req, res) {
         try {
             const uuid = req.params.uuid;
-            
+
             if (!uuid) {
                 return res.status(400).json({ msg: "uuid is required" });
             }
@@ -186,10 +200,24 @@ const methods = {
     // สร้าง
     async onCreate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            const { error, value } = validateCreate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
+            }
+
+            let namecardPath = await uploadController.onUploadFile(
+                req,
+                "/company/",
+                "namecard_file"
+            );
+
+            if (namecardPath == "error") {
+                return res.status(500).send("namecard_file error");
+            }
+
+            if (namecardPath) {
+                value.namecard_file = namecardPath;
             }
 
             const item = await prisma[$table].create({
@@ -206,11 +234,26 @@ const methods = {
     // แก้ไข
     async onUpdate(req, res) {
         try {
-            const { error, value } = schema.validate(req.body);
+            const { error, value } = validateUpdate(req.body);
 
             if (error) {
                 return res.status(400).json({ msg: error.details[0].message });
             }
+
+            let namecardPath = await uploadController.onUploadFile(
+                req,
+                "/company/",
+                "namecard_file"
+            );
+
+            if (namecardPath == "error") {
+                return res.status(500).send("namecard_file error");
+            }
+
+            if (namecardPath) {
+                value.namecard_file = namecardPath;
+            }
+
             const item = await prisma[$table].update({
                 where: {
                     id: Number(req.params.id),
