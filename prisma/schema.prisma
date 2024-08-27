@@ -197,6 +197,7 @@ model student_profile {
     deleted_at          DateTime?
     deleted_by          String?          @db.VarChar(255)
     form                form[]
+    documents           document[]
 
     @@index([user_id], name: "idx_student_user_id")
     @@index([faculty_id], name: "idx_student_faculty_id")
@@ -373,15 +374,19 @@ model document_type {
     updated_by  String?   @db.VarChar(255)
     deleted_at  DateTime?
     deleted_by  String?   @db.VarChar(255)
+
+    document    document[]
 }
 
 model document {
     id               Int       @id @default(autoincrement())
-    uuID             String    @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    uuid             String    @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
     student_id       Int
+    student_detail   student_profile? @relation(fields: [student_id], references: [id])
     document_name    String
     document_file    String?
     document_type_id Int
+    document_type_detail    document_type    @relation(fields: [document_type_id], references: [id])
     is_active        Boolean   @default(true)
     created_at       DateTime  @default(now())
     created_by       String?   @db.VarChar(255)
