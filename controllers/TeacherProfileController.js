@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
-const axios = require('axios');
+const axios = require("axios");
 // const prisma = new PrismaClient();
 const $table = "teacher_profile";
 const uploadController = require("./UploadsController");
@@ -10,19 +10,36 @@ const departmentController = require("./DepartmentController");
 
 const prisma = new PrismaClient().$extends({
     result: {
-        teacher_profile: {  //extend Model name
-            signature_file: { // the name of the new computed field
-                needs: { /* field */
-                    signature_file: true,
+        teacher_profile: {
+            //extend Model name
+            signature_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ signature_file: true,
                 },
                 compute(model) {
                     let signature_file = null;
 
                     if (model.signature_file != null) {
-                        signature_file = process.env.PATH_UPLOAD + model.signature_file;
+                        signature_file =
+                            process.env.PATH_UPLOAD + model.signature_file;
                     }
 
                     return signature_file;
+                },
+            },
+            fullname: {
+                needs: {
+                    prefix: true,
+                    firstname: true,
+                    surname: true,
+                },
+                compute(model) {
+                    let prefix = "";
+
+                    prefix = model.prefix ? model.prefix : "";
+
+                    return prefix + model.firstname + " " + model.surname;
                 },
             },
         },
@@ -31,35 +48,38 @@ const prisma = new PrismaClient().$extends({
 
 const hrisFindPersonnel = async (searchParams) => {
     try {
-
-        if(searchParams.person_key == null && searchParams.firstname == null && searchParams.lastname == null && searchParams.position_type_id == null) {
+        if (
+            searchParams.person_key == null &&
+            searchParams.firstname == null &&
+            searchParams.lastname == null &&
+            searchParams.position_type_id == null
+        ) {
             // return "Please enter search parameter";
             throw new Error("Search parameter must be defined");
         }
 
-        dataParams = {}
+        dataParams = {};
 
-        if(searchParams.firstname)
-            dataParams['firstname'] = searchParams.firstname;
+        if (searchParams.firstname)
+            dataParams["firstname"] = searchParams.firstname;
 
-        if(searchParams.lastname)
-            dataParams['lastname'] = searchParams.lastname;
+        if (searchParams.lastname)
+            dataParams["lastname"] = searchParams.lastname;
 
-        if(searchParams.person_key)
-            dataParams['person_key'] = searchParams.person_key;
+        if (searchParams.person_key)
+            dataParams["person_key"] = searchParams.person_key;
 
-        if(searchParams.position_type_id)
-            dataParams['position_type_id'] = searchParams.position_type_id;
+        if (searchParams.position_type_id)
+            dataParams["position_type_id"] = searchParams.position_type_id;
 
-        if(searchParams.person_key)
-            dataParams['person_key'] = searchParams.person_key;
+        if (searchParams.person_key)
+            dataParams["person_key"] = searchParams.person_key;
 
-        if(searchParams.faculty_code)
-            dataParams['faculty_code'] = searchParams.faculty_code;
+        if (searchParams.faculty_code)
+            dataParams["faculty_code"] = searchParams.faculty_code;
 
-        if(searchParams.department_code)
-            dataParams['department_code'] = searchParams.department_code;
-
+        if (searchParams.department_code)
+            dataParams["department_code"] = searchParams.department_code;
 
         const config = {
             method: "post",
@@ -74,7 +94,7 @@ const hrisFindPersonnel = async (searchParams) => {
         }
         // console.log(response);
         return response.data.data;
-    }catch (error) {
+    } catch (error) {
         // console.log(error);
         throw error;
     }
@@ -82,14 +102,14 @@ const hrisFindPersonnel = async (searchParams) => {
 
 const hrisPersonnelInfo = async (person_key) => {
     try {
-        if(person_key == null) {
+        if (person_key == null) {
             // return "Please enter search parameter";
             throw new Error("person_key is required");
         }
 
-        dataParams = {}
-        dataParams['person_key'] = person_key;
-        dataParams['get_work_info'] = 1;
+        dataParams = {};
+        dataParams["person_key"] = person_key;
+        dataParams["get_work_info"] = 1;
 
         const config = {
             method: "post",
@@ -98,14 +118,13 @@ const hrisPersonnelInfo = async (person_key) => {
             data: dataParams,
         };
 
-
         const response = await axios(config);
         // console.log(response);
         // if (response.status === 404) {
         //     return null;
         // }
         return response.data;
-    }catch (error) {
+    } catch (error) {
         throw error;
     }
 };
@@ -142,6 +161,7 @@ const selectField = {
     prefix: true,
     firstname: true,
     surname: true,
+    fullname: true,
     citizen_id: true,
     phone: true,
     email: true,
@@ -161,8 +181,8 @@ const selectField = {
     division_id: true,
     division_detail: {
         select: {
-            name: true
-        }
+            name: true,
+        },
     },
     province_id: true,
     province_detail: {
@@ -185,7 +205,26 @@ const selectField = {
     is_active: true,
 };
 const filterData = (req) => {
-    const { id, uuid, executive_position, user_id, person_key, firstname, surname, citizen_id, phone, email, address, faculty_id, department_id, division_id, province_id, district_id, sub_district_id, is_active } = req.query;
+    const {
+        id,
+        uuid,
+        executive_position,
+        user_id,
+        person_key,
+        firstname,
+        surname,
+        citizen_id,
+        phone,
+        email,
+        address,
+        faculty_id,
+        department_id,
+        division_id,
+        province_id,
+        district_id,
+        sub_district_id,
+        is_active,
+    } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
@@ -245,7 +284,6 @@ const updateSchema = Joi.object(baseSchema);
 const validateCreate = (data) => createSchema.validate(data);
 const validateUpdate = (data) => updateSchema.validate(data);
 
-
 const methods = {
     async onGetAll(req, res) {
         try {
@@ -298,7 +336,7 @@ const methods = {
             });
         } catch (error) {
             console.error("Error fetching item by ID:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(404).json({ msg: error.message });
@@ -335,7 +373,7 @@ const methods = {
             res.status(201).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error creating item:", error);
-            if(error.code === "P2002") {
+            if (error.code === "P2002") {
                 return res.status(409).json({ msg: "Item already exists" });
             }
             res.status(500).json({ msg: error.message });
@@ -375,7 +413,7 @@ const methods = {
             res.status(200).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error updating item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
@@ -393,13 +431,13 @@ const methods = {
             await prisma[$table].delete({
                 where: {
                     id: Number(id),
-                }
+                },
             });
 
             res.status(200).json({ msg: "success" });
         } catch (error) {
             console.error("Error deleting item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
@@ -407,17 +445,17 @@ const methods = {
     },
 
     async onHrisFindPersonnel(req, res) {
-        try{
+        try {
             const data = await hrisFindPersonnel(req.query);
             res.status(200).json({ data: data, msg: "success" });
-        }catch(error){
+        } catch (error) {
             // console.error("Error fetching data:", error);
             res.status(500).json({ msg: error.message });
         }
     },
 
     async onHrisSyncTeacher(req, res) {
-        try{
+        try {
             req.query.position_type_id = 1;
             const data = await hrisFindPersonnel(req.query);
             // Now you can work with the peopleData array
@@ -431,7 +469,9 @@ const methods = {
                 const department_code = person.department_code;
 
                 const fac_id = await facultyController.getIdByCode(fac_code);
-                const dept_id = await departmentController.getIdByCode(department_code);
+                const dept_id = await departmentController.getIdByCode(
+                    department_code
+                );
 
                 const data = {
                     person_key: person_key,
@@ -445,25 +485,25 @@ const methods = {
                     phone: null,
                     email: null,
                     address: null,
-                }
+                };
 
                 // console.log(data);
                 await upsertTeacherProfile(person_key, data);
             }
 
             res.status(200).json({ data: data, msg: "success" });
-        }catch(error){
+        } catch (error) {
             // console.error("Error fetching data:", error);
             res.status(500).json({ msg: error.message });
         }
     },
 
     async onHrisSyncTeacherByPersonKey(req, res) {
-        try{
+        try {
             const person_key = req.params.person_key;
             const data = await hrisPersonnelInfo(person_key);
             console.log(data);
-            if(data !== null) {
+            if (data !== null) {
                 const person_key = data.person_key;
                 const prefix = data.person_info.full_prefix_name_th;
                 const firstname_th = data.person_info.firstname_th;
@@ -474,7 +514,9 @@ const methods = {
                 const department_code = data.work_info.department_code;
 
                 const fac_id = await facultyController.getIdByCode(fac_code);
-                const dept_id = await departmentController.getIdByCode(department_code);
+                const dept_id = await departmentController.getIdByCode(
+                    department_code
+                );
 
                 const personData = {
                     person_key: person_key,
@@ -488,7 +530,7 @@ const methods = {
                     phone: null,
                     email: null,
                     address: null,
-                }
+                };
                 // console.log(personData);
 
                 const item = await upsertTeacherProfile(person_key, personData);
@@ -496,11 +538,11 @@ const methods = {
             }
             // console.log(data);
             res.status(200).json({ data: data, msg: "success" });
-        }catch(error){
+        } catch (error) {
             // console.error("Error fetching data:", error);
             res.status(500).json({ msg: error.message });
         }
-    }
+    },
 };
 
 module.exports = { ...methods };
