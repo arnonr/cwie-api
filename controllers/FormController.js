@@ -484,6 +484,38 @@ const methods = {
                 return res.status(400).json({ msg: error.details[0].message });
             }
 
+            const errors_upload = [];
+
+            const uploadFiles = async (req, fields) => {
+                const paths = {};
+                for (const field of fields) {
+                    let filePath = await uploadController.onUploadFile(req, "/form/", field);
+                    if (filePath === "error") {
+                        errors_upload.push(field);
+                    } else {
+                        paths[field] = filePath;
+                    }
+                }
+                return paths;
+            };
+
+            const fileFields = [
+                "response_document_file",
+                "workplace_googlemap_file",
+                "plan_document_file",
+                "namecard_file",
+                "ppt_report_file",
+                "poster_report_file",
+            ];
+
+            const uploadedPaths = await uploadFiles(req, fileFields);
+
+            if (errors_upload.length > 0) {
+                return res.status(500).json(errors_upload);
+            }
+
+            Object.assign(value, uploadedPaths);
+
             const item = await prisma[$table].create({
                 data: { ...value, created_by: req.user?.name },
             });
