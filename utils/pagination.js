@@ -21,9 +21,10 @@ const countDataAndOrder = async (prisma, req, $where, $table) => {
 
     let $offset = req.query.perPage ? $perPage * ($currentPage - 1) : undefined;
 
-    if (isNaN($totalPage)) {
+    if (isNaN($totalPage) || $totalPage === 0) {
         $totalPage = 1;
     }
+
     return {
         $orderBy: $orderBy,
         $offset: $offset,
