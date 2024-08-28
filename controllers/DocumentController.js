@@ -7,16 +7,19 @@ const $table = "document";
 
 const prisma = new PrismaClient().$extends({
     result: {
-        document: {  //extend Model name
-            document_file: { // the name of the new computed field
-                needs: { /* field */
-                    document_file: true,
+        document: {
+            //extend Model name
+            document_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ document_file: true,
                 },
                 compute(model) {
                     let document_file = null;
 
                     if (model.document_file != null) {
-                        document_file = process.env.PATH_UPLOAD + model.document_file;
+                        document_file =
+                            process.env.PATH_UPLOAD + model.document_file;
                     }
 
                     return document_file;
@@ -52,7 +55,15 @@ const selectField = {
 };
 
 const filterData = (req) => {
-    const { id, uuid, student_id, document_name, document_file, document_type_id, is_active } = req.query;
+    const {
+        id,
+        uuid,
+        student_id,
+        document_name,
+        document_file,
+        document_type_id,
+        is_active,
+    } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
@@ -63,7 +74,7 @@ const filterData = (req) => {
         ...(document_name && { document_name: { contains: document_name } }),
         ...(document_file && { document_file: { contains: document_file } }),
         ...(document_type_id && { document_type_id: Number(document_type_id) }),
-        ...(is_active && { is_active: Number(is_active) }),
+        ...(is_active && { is_active: JSON.parse(is_active) }),
     };
 
     return $where;
@@ -190,7 +201,6 @@ const methods = {
     // แก้ไข
     async onUpdate(req, res) {
         try {
-
             const { error, value } = validateUpdate(req.body);
 
             if (error) {

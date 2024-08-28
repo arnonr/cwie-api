@@ -36,7 +36,7 @@ router.use(
     router.use("/faculty", faculty),
     router.use("/department", department),
     router.use("/division", division),
-    router.use("/company", authMiddleware, company),
+    router.use("/company", company),
     router.use("/sub-district", subDistrict),
     router.use("/group", group),
     router.use("/group-permission", groupPermission),
