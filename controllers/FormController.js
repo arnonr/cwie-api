@@ -257,7 +257,7 @@ const filterData = (req) => {
         ...(is_pass_disease && { is_pass_disease: Number(is_pass_disease) }),
         ...(send_at && { send_at: { gte: new Date(send_at) } }),
         ...(reject_status_id && { reject_status_id: Number(reject_status_id) }),
-        ...(is_active && { is_active: Number(is_active) }),
+        ...(is_active && { is_active: JSON.parse(is_active) }),
     };
 
     return $where;

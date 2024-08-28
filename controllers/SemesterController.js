@@ -23,7 +23,7 @@ const filterData = (req) => {
         ...(uuid && { uuid: uuid }),
         ...(year && { year: Number(year) }),
         ...(term && { term: Number(term) }),
-        ...(is_active && { is_active: Number(is_active) }),
+        ...(is_active && { is_active: JSON.parse(is_active) }),
     };
 
     return $where;

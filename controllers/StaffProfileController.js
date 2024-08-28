@@ -57,7 +57,7 @@ const filterData = (req) => {
         ...(faculty_id && { faculty_id: Number(faculty_id) }),
         ...(department_id && { department_id: Number(department_id) }),
         ...(division_id && { division_id: Number(division_id) }),
-        ...(is_active && { is_active: Number(is_active) }),
+        ...(is_active && { is_active: JSON.parse(is_active) }),
     };
 
     return $where;

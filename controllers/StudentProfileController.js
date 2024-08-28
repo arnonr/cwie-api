@@ -191,7 +191,7 @@ const filterData = (req) => {
             emergency_phone: { contains: emergency_phone },
         }),
         ...(status_id && { status_id: Number(status_id) }),
-        ...(is_active && { is_active: Number(is_active) }),
+        ...(is_active && { is_active: JSON.parse(is_active) }),
     };
 
     return $where;

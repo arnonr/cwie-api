@@ -17,7 +17,7 @@ const filterData = (req) => {
         ...(phone && { phone: { contains: phone } }),
         ...(email && { email: { contains: email } }),
         ...(campus_id && { id: Number(campus_id) }),
-        ...(is_active && { is_active: Number(is_active) }),
+        ...(is_active && { is_active: JSON.parse(is_active) }),
     };
 
     return $where;

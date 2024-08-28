@@ -206,7 +206,7 @@ const filterData = (req) => {
         ...(province_id && { province_id: Number(province_id) }),
         ...(district_id && { district_id: Number(district_id) }),
         ...(sub_district_id && { sub_district_id: Number(sub_district_id) }),
-        ...(is_active && { is_active: Number(is_active) }),
+        ...(is_active && { is_active: JSON.parse(is_active) }),
     };
 
     return $where;
