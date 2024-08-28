@@ -119,7 +119,9 @@ const methods = {
             const other = await countDataAndOrder(prisma, req, $where, $table);
 
             const items = await prisma[$table].findMany({
-                select: selectField,
+                select: req.query.selectField
+                    ? JSON.parse(req.query.selectField)
+                    : selectField,
                 where: $where,
                 orderBy: other.$orderBy,
                 skip: other.$offset,
