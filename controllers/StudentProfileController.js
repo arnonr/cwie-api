@@ -8,10 +8,12 @@ const $table = "student_profile";
 // const prisma = new PrismaClient();
 const prisma = new PrismaClient().$extends({
     result: {
-        student_profile: {  //extend Model name
-            photo_file: { // the name of the new computed field
-                needs: { /* field */
-                    photo_file: true,
+        student_profile: {
+            //extend Model name
+            photo_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ photo_file: true,
                 },
                 compute(model) {
                     let photo_file = null;
@@ -73,6 +75,7 @@ const selectField = {
     sub_district_detail: {
         select: {
             name_th: true,
+            zip_code: true,
         },
     },
     student_code: true,
