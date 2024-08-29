@@ -108,6 +108,7 @@ const selectField = {
     sub_district_detail: {
         select: {
             name_th: true,
+            zip_code: true,
         },
     },
 };
