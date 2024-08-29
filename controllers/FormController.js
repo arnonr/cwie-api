@@ -735,6 +735,7 @@ const methods = {
             await prisma[$table].update({
                 where: {
                     id: Number(id),
+                    form_status_id: 99,
                 },
                 data: {
                     is_active: 0,
