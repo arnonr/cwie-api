@@ -738,7 +738,7 @@ const methods = {
                     form_status_id: 99,
                 },
                 data: {
-                    is_active: 0,
+                    is_active: false,
                     updated_by: req.user?.name,
                 },
             });
