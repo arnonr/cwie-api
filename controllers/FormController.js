@@ -7,86 +7,101 @@ const $table = "form";
 
 const prisma = new PrismaClient().$extends({
     result: {
-        form: {  //extend Model name
-            response_document_file: { // the name of the new computed field
-                needs: { /* field */
-                    response_document_file: true,
+        form: {
+            //extend Model name
+            response_document_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ response_document_file: true,
                 },
                 compute(model) {
                     let response_document_file = null;
 
                     if (model.response_document_file != null) {
-                        response_document_file = process.env.PATH_UPLOAD + model.response_document_file;
+                        response_document_file =
+                            process.env.PATH_UPLOAD +
+                            model.response_document_file;
                     }
 
                     return response_document_file;
                 },
             },
-            workplace_googlemap_file: { // the name of the new computed field
-                needs: { /* field */
-                    workplace_googlemap_file: true,
+            workplace_googlemap_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ workplace_googlemap_file: true,
                 },
                 compute(model) {
                     let workplace_googlemap_file = null;
 
                     if (model.workplace_googlemap_file != null) {
-                        workplace_googlemap_file = process.env.PATH_UPLOAD + model.workplace_googlemap_file;
+                        workplace_googlemap_file =
+                            process.env.PATH_UPLOAD +
+                            model.workplace_googlemap_file;
                     }
 
                     return workplace_googlemap_file;
                 },
             },
-            plan_document_file: { // the name of the new computed field
-                needs: { /* field */
-                    plan_document_file: true,
+            plan_document_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ plan_document_file: true,
                 },
                 compute(model) {
                     let plan_document_file = null;
 
                     if (model.plan_document_file != null) {
-                        plan_document_file = process.env.PATH_UPLOAD + model.plan_document_file;
+                        plan_document_file =
+                            process.env.PATH_UPLOAD + model.plan_document_file;
                     }
 
                     return plan_document_file;
                 },
             },
-            namecard_file: { // the name of the new computed field
-                needs: { /* field */
-                    namecard_file: true,
+            namecard_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ namecard_file: true,
                 },
                 compute(model) {
                     let namecard_file = null;
 
                     if (model.namecard_file != null) {
-                        namecard_file = process.env.PATH_UPLOAD + model.namecard_file;
+                        namecard_file =
+                            process.env.PATH_UPLOAD + model.namecard_file;
                     }
 
                     return namecard_file;
                 },
             },
-            ppt_report_file: { // the name of the new computed field
-                needs: { /* field */
-                    ppt_report_file: true,
+            ppt_report_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ ppt_report_file: true,
                 },
                 compute(model) {
                     let ppt_report_file = null;
 
                     if (model.ppt_report_file != null) {
-                        ppt_report_file = process.env.PATH_UPLOAD + model.ppt_report_file;
+                        ppt_report_file =
+                            process.env.PATH_UPLOAD + model.ppt_report_file;
                     }
 
                     return ppt_report_file;
                 },
             },
-            poster_report_file: { // the name of the new computed field
-                needs: { /* field */
-                    poster_report_file: true,
+            poster_report_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ poster_report_file: true,
                 },
                 compute(model) {
                     let poster_report_file = null;
 
                     if (model.poster_report_file != null) {
-                        poster_report_file = process.env.PATH_UPLOAD + model.poster_report_file;
+                        poster_report_file =
+                            process.env.PATH_UPLOAD + model.poster_report_file;
                     }
 
                     return poster_report_file;
@@ -101,33 +116,19 @@ const selectField = {
     id: true,
     uuid: true,
     student_id: true,
-    student_detail: {
-
-    },
+    student_detail: {},
     company_id: true,
-    company_detail: {
-
-    },
+    company_detail: {},
     semester_id: true,
-    semester_detail: {
-
-    },
+    semester_detail: {},
     visitor_id: true,
-    visitor_detail: {
-
-    },
+    visitor_detail: {},
     division_head_id: true,
-    division_head_detail: {
-
-    },
+    division_head_detail: {},
     faculty_head_id: true,
-    faculty_head_detail: {
-
-    },
+    faculty_head_detail: {},
     form_status_id: true,
-    form_status_detail: {
-
-    },
+    form_status_detail: {},
     start_date: true,
     end_date: true,
     co_name: true,
@@ -145,23 +146,15 @@ const selectField = {
     response_send_at: true,
     response_result: true,
     response_province_id: true,
-    response_province_detail: {
-
-    },
+    response_province_detail: {},
     confirm_response_at: true,
     workplace_address: true,
     workplace_province_id: true,
-    workplace_province_detail: {
-
-    },
+    workplace_province_detail: {},
     workplace_district_id: true,
-    workplace_district_detail: {
-
-    },
+    workplace_district_detail: {},
     workplace_sub_district_id: true,
-    workplace_sub_district_detail: {
-
-    },
+    workplace_sub_district_detail: {},
     workplace_googlemap_url: true,
     workplace_googlemap_file: true,
     plan_send_at: true,
@@ -172,17 +165,11 @@ const selectField = {
     staff_confirmed_at: true,
     namecard_file: true,
     province_id: true,
-    province_detail: {
-
-    },
+    province_detail: {},
     district_id: true,
-    district_detail: {
-
-    },
+    district_detail: {},
     sub_district_id: true,
-    sub_district_detail: {
-
-    },
+    sub_district_detail: {},
     is_pass_coop_subject: true,
     is_pass_general_subject: true,
     is_pass_gpa: true,
@@ -193,9 +180,7 @@ const selectField = {
     poster_report_file: true,
     send_at: true,
     reject_status_id: true,
-    reject_status_detail: {
-
-    },
+    reject_status_detail: {},
     created_at: true,
     created_by: true,
     updated_at: true,
@@ -204,7 +189,56 @@ const selectField = {
 };
 
 const filterData = (req) => {
-    const { id, uuid, student_id, company_id, semester_id, visitor_id, division_head_id, faculty_head_id, form_status_id, start_date, end_date, co_name, co_position, co_phone, co_email, request_name, request_position, request_document_date, request_document_number, max_respone_date, send_document_date, send_document_number, response_send_at, response_result, response_province_id, confirm_response_at, workplace_address, workplace_province_id, workplace_district_id, workplace_sub_district_id, plan_send_at, plan_accept_at, advisor_verified_at, division_head_approved_at, faculty_head_approved_at, staff_confirmed_at, province_id, district_id, sub_district_id, is_pass_coop_subject, is_pass_general_subject, is_pass_gpa, is_pass_suspend, is_pass_punishment, is_pass_disease, send_at, reject_status_id, is_active } = req.query;
+    const {
+        id,
+        uuid,
+        student_id,
+        company_id,
+        semester_id,
+        visitor_id,
+        division_head_id,
+        faculty_head_id,
+        form_status_id,
+        start_date,
+        end_date,
+        co_name,
+        co_position,
+        co_phone,
+        co_email,
+        request_name,
+        request_position,
+        request_document_date,
+        request_document_number,
+        max_respone_date,
+        send_document_date,
+        send_document_number,
+        response_send_at,
+        response_result,
+        response_province_id,
+        confirm_response_at,
+        workplace_address,
+        workplace_province_id,
+        workplace_district_id,
+        workplace_sub_district_id,
+        plan_send_at,
+        plan_accept_at,
+        advisor_verified_at,
+        division_head_approved_at,
+        faculty_head_approved_at,
+        staff_confirmed_at,
+        province_id,
+        district_id,
+        sub_district_id,
+        is_pass_coop_subject,
+        is_pass_general_subject,
+        is_pass_gpa,
+        is_pass_suspend,
+        is_pass_punishment,
+        is_pass_disease,
+        send_at,
+        reject_status_id,
+        is_active,
+    } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
@@ -225,35 +259,85 @@ const filterData = (req) => {
         ...(co_phone && { co_phone: { contains: co_phone } }),
         ...(co_email && { co_email: { contains: co_email } }),
         ...(request_name && { request_name: { contains: request_name } }),
-        ...(request_position && { request_position: { contains: request_position } }),
-        ...(request_document_date && { request_document_date: { gte: new Date(request_document_date) } }),
-        ...(request_document_number && { request_document_number: { contains: request_document_number } }),
-        ...(max_respone_date && { max_respone_date: { gte: new Date(max_respone_date) } }),
-        ...(send_document_date && { send_document_date: { gte: new Date(send_document_date) } }),
-        ...(send_document_number && { send_document_number: { contains: send_document_number } }),
-        ...(response_send_at && { response_send_at: { gte: new Date(response_send_at) } }),
-        ...(response_result && { response_result: { contains: response_result } }),
-        ...(response_province_id && { response_province_id: Number(response_province_id) }),
-        ...(confirm_response_at && { confirm_response_at: { gte: new Date(confirm_response_at) } }),
-        ...(workplace_address && { workplace_address: { contains: workplace_address } }),
-        ...(workplace_province_id && { workplace_province_id: Number(workplace_province_id) }),
-        ...(workplace_district_id && { workplace_district_id: Number(workplace_district_id) }),
-        ...(workplace_sub_district_id && { workplace_sub_district_id: Number(workplace_sub_district_id) }),
+        ...(request_position && {
+            request_position: { contains: request_position },
+        }),
+        ...(request_document_date && {
+            request_document_date: { gte: new Date(request_document_date) },
+        }),
+        ...(request_document_number && {
+            request_document_number: { contains: request_document_number },
+        }),
+        ...(max_respone_date && {
+            max_respone_date: { gte: new Date(max_respone_date) },
+        }),
+        ...(send_document_date && {
+            send_document_date: { gte: new Date(send_document_date) },
+        }),
+        ...(send_document_number && {
+            send_document_number: { contains: send_document_number },
+        }),
+        ...(response_send_at && {
+            response_send_at: { gte: new Date(response_send_at) },
+        }),
+        ...(response_result && {
+            response_result: { contains: response_result },
+        }),
+        ...(response_province_id && {
+            response_province_id: Number(response_province_id),
+        }),
+        ...(confirm_response_at && {
+            confirm_response_at: { gte: new Date(confirm_response_at) },
+        }),
+        ...(workplace_address && {
+            workplace_address: { contains: workplace_address },
+        }),
+        ...(workplace_province_id && {
+            workplace_province_id: Number(workplace_province_id),
+        }),
+        ...(workplace_district_id && {
+            workplace_district_id: Number(workplace_district_id),
+        }),
+        ...(workplace_sub_district_id && {
+            workplace_sub_district_id: Number(workplace_sub_district_id),
+        }),
         ...(plan_send_at && { plan_send_at: { gte: new Date(plan_send_at) } }),
-        ...(plan_accept_at && { plan_accept_at: { gte: new Date(plan_accept_at) } }),
-        ...(advisor_verified_at && { advisor_verified_at: { gte: new Date(advisor_verified_at) } }),
-        ...(advisor_verified_at && { advisor_verified_at: { gte: new Date(advisor_verified_at) } }),
-        ...(division_head_approved_at && { division_head_approved_at: { gte: new Date(division_head_approved_at) } }),
-        ...(faculty_head_approved_at && { faculty_head_approved_at: { gte: new Date(faculty_head_approved_at) } }),
-        ...(staff_confirmed_at && { staff_confirmed_at: { gte: new Date(staff_confirmed_at) } }),
+        ...(plan_accept_at && {
+            plan_accept_at: { gte: new Date(plan_accept_at) },
+        }),
+        ...(advisor_verified_at && {
+            advisor_verified_at: { gte: new Date(advisor_verified_at) },
+        }),
+        ...(advisor_verified_at && {
+            advisor_verified_at: { gte: new Date(advisor_verified_at) },
+        }),
+        ...(division_head_approved_at && {
+            division_head_approved_at: {
+                gte: new Date(division_head_approved_at),
+            },
+        }),
+        ...(faculty_head_approved_at && {
+            faculty_head_approved_at: {
+                gte: new Date(faculty_head_approved_at),
+            },
+        }),
+        ...(staff_confirmed_at && {
+            staff_confirmed_at: { gte: new Date(staff_confirmed_at) },
+        }),
         ...(province_id && { province_id: Number(province_id) }),
         ...(district_id && { district_id: Number(district_id) }),
         ...(sub_district_id && { sub_district_id: Number(sub_district_id) }),
-        ...(is_pass_coop_subject && { is_pass_coop_subject: Number(is_pass_coop_subject) }),
-        ...(is_pass_general_subject && { is_pass_general_subject: Number(is_pass_general_subject) }),
+        ...(is_pass_coop_subject && {
+            is_pass_coop_subject: Number(is_pass_coop_subject),
+        }),
+        ...(is_pass_general_subject && {
+            is_pass_general_subject: Number(is_pass_general_subject),
+        }),
         ...(is_pass_gpa && { is_pass_gpa: Number(is_pass_gpa) }),
         ...(is_pass_suspend && { is_pass_suspend: Number(is_pass_suspend) }),
-        ...(is_pass_punishment && { is_pass_punishment: Number(is_pass_punishment) }),
+        ...(is_pass_punishment && {
+            is_pass_punishment: Number(is_pass_punishment),
+        }),
         ...(is_pass_disease && { is_pass_disease: Number(is_pass_disease) }),
         ...(send_at && { send_at: { gte: new Date(send_at) } }),
         ...(reject_status_id && { reject_status_id: Number(reject_status_id) }),
@@ -332,7 +416,7 @@ const validateCreate = (data) => createSchema.validate(data);
 const validateUpdate = (data) => updateSchema.validate(data);
 
 const generateFormNumber = async (id) => {
-    try{
+    try {
         const item = await prisma[$table].findUnique({
             select: {
                 form_number: true,
@@ -356,8 +440,8 @@ const generateFormNumber = async (id) => {
             },
             where: {
                 created_at: {
-                gte: new Date(`${currentYear}-01-01`),
-                lt: new Date(`${currentYear + 1}-01-01`),
+                    gte: new Date(`${currentYear}-01-01`),
+                    lt: new Date(`${currentYear + 1}-01-01`),
                 },
             },
         });
@@ -372,9 +456,9 @@ const generateFormNumber = async (id) => {
         if (item.jcoms_no == null) {
             await prisma[$table].update({
                 where: {
-                id: Number(id),
+                    id: Number(id),
                 },
-                    data: {
+                data: {
                     form_number: form_number,
                     year_running: newRunningYear,
                 },
@@ -468,7 +552,7 @@ const methods = {
             });
         } catch (error) {
             console.error("Error fetching item by ID:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(404).json({ msg: error.message });
@@ -489,7 +573,11 @@ const methods = {
             const uploadFiles = async (req, fields) => {
                 const paths = {};
                 for (const field of fields) {
-                    let filePath = await uploadController.onUploadFile(req, "/form/", field);
+                    let filePath = await uploadController.onUploadFile(
+                        req,
+                        "/form/",
+                        field
+                    );
                     if (filePath === "error") {
                         errors_upload.push(field);
                     } else {
@@ -520,8 +608,10 @@ const methods = {
                 data: { ...value, created_by: req.user?.name },
             });
 
-            if(item){
-                const { form_number, year_running } = await generateFormNumber(item.id);
+            if (item) {
+                const { form_number, year_running } = await generateFormNumber(
+                    item.id
+                );
                 item.form_number = form_number;
                 item.year_running = year_running;
             }
@@ -529,7 +619,7 @@ const methods = {
             res.status(201).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error creating item:", error);
-            if(error.code === "P2002") {
+            if (error.code === "P2002") {
                 return res.status(409).json({ msg: "Item already exists" });
             }
             res.status(500).json({ msg: error.message });
@@ -550,7 +640,11 @@ const methods = {
             const uploadFiles = async (req, fields) => {
                 const paths = {};
                 for (const field of fields) {
-                    let filePath = await uploadController.onUploadFile(req, "/form/", field);
+                    let filePath = await uploadController.onUploadFile(
+                        req,
+                        "/form/",
+                        field
+                    );
                     if (filePath === "error") {
                         errors_upload.push(field);
                     } else {
@@ -584,8 +678,10 @@ const methods = {
                 data: { ...value, updated_by: req.user?.name },
             });
 
-            if(item.form_number == null) {
-                const { form_number, year_running } = await generateFormNumber(item.id);
+            if (item.form_number == null) {
+                const { form_number, year_running } = await generateFormNumber(
+                    item.id
+                );
                 item.form_number = form_number;
                 item.year_running = year_running;
             }
@@ -593,7 +689,7 @@ const methods = {
             res.status(200).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error updating item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
@@ -621,7 +717,35 @@ const methods = {
             res.status(200).json({ msg: "success" });
         } catch (error) {
             console.error("Error deleting item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
+                return res.status(404).json({ msg: "Item not found" });
+            }
+            res.status(400).json({ msg: error.message });
+        }
+    },
+    // ยกเลิก
+    async onCancel(req, res) {
+        try {
+            const { id } = req.params;
+
+            if (!id) {
+                return res.status(400).json({ msg: "ID is required" });
+            }
+
+            await prisma[$table].update({
+                where: {
+                    id: Number(id),
+                },
+                data: {
+                    is_active: 0,
+                    updated_by: req.user?.name,
+                },
+            });
+
+            res.status(200).json({ msg: "success" });
+        } catch (error) {
+            console.error("Error Cancel item:", error);
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
