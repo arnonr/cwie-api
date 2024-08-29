@@ -40,6 +40,7 @@ model user {
     teacher_profile teacher_profile? @relation("TeacherProfileToUser")
     student_profile student_profile? @relation("StudentProfileToUser")
     staff_profile   staff_profile?   @relation("StaffProfileToUser")
+    reject_log      reject_log[]
 
     @@index([username], name: "idx_username")
     @@index([username, deleted_at], name: "idx_username_deleted_at")
@@ -464,9 +465,14 @@ model form {
     is_pass_disease               Boolean?          @default(false)
     ppt_report_file               String?
     poster_report_file            String?
+    report_file                   String?
+    report_send_at                DateTime?        @db.Date
+    report_accept_at              DateTime?        @db.Date
     send_at                       DateTime?        @db.Date
+    closed_at                     DateTime?        @db.Date
     reject_status_id              Int?
     reject_status_detail          reject_status?   @relation(fields: [reject_status_id], references: [id])
+    reject_log                    reject_log[]
 
     // reject
     is_active  Boolean   @default(true)
@@ -503,11 +509,14 @@ model form_status {
     deleted_at DateTime?
     deleted_by String?   @db.VarChar(255)
     form       form[]
+    reject_status reject_status[]
 }
 
 model reject_status {
     id         Int       @id @default(autoincrement())
     name       String
+    form_status_id Int?
+    form_status_detail form_status? @relation(fields: [form_status_id], references: [id])
     is_active  Boolean   @default(true)
     created_at DateTime  @default(now())
     created_by String?   @db.VarChar(255)
@@ -516,14 +525,18 @@ model reject_status {
     deleted_at DateTime?
     deleted_by String?   @db.VarChar(255)
     form       form[]
+    reject_log reject_log[]
 }
 
 model reject_log {
     id               Int       @id @default(autoincrement())
     comment          String?   @db.Text
     user_id          Int
+    user_detail      user      @relation(fields: [user_id], references: [id])
     form_id          Int
     reject_status_id Int
+    reject_status_detail reject_status    @relation(fields: [reject_status_id], references: [id])
+    form_detail                  form      @relation(fields: [form_id], references: [id])
     is_active        Boolean   @default(true)
     created_at       DateTime  @default(now())
     created_by       String?   @db.VarChar(255)

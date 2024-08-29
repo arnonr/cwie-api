@@ -107,6 +107,22 @@ const prisma = new PrismaClient().$extends({
                     return poster_report_file;
                 },
             },
+            report_file: {
+                // the name of the new computed field
+                needs: {
+                    /* field */ report_file: true,
+                },
+                compute(model) {
+                    let report_file = null;
+
+                    if (model.report_file != null) {
+                        report_file =
+                            process.env.PATH_UPLOAD + model.report_file;
+                    }
+
+                    return report_file;
+                },
+            },
         },
     },
 });
@@ -181,6 +197,11 @@ const selectField = {
     send_at: true,
     reject_status_id: true,
     reject_status_detail: {},
+    report_file: true,
+    report_send_at: true,
+    report_accept_at: true,
+    closed_at: true,
+    send_at: true,
     created_at: true,
     created_by: true,
     updated_at: true,
@@ -238,6 +259,9 @@ const filterData = (req) => {
         send_at,
         reject_status_id,
         is_active,
+        report_send_at,
+        report_accept_at,
+        closed_at
     } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
@@ -342,6 +366,9 @@ const filterData = (req) => {
         ...(send_at && { send_at: { gte: new Date(send_at) } }),
         ...(reject_status_id && { reject_status_id: Number(reject_status_id) }),
         ...(is_active && { is_active: JSON.parse(is_active) }),
+        ...(report_send_at && { report_send_at: { gte: new Date(report_send_at) } }),
+        ...(report_accept_at && {report_accept_at: { gte: new Date(report_accept_at) }}),
+        ...(closed_at && { closed_at: { gte: new Date(closed_at) } }),
     };
 
     return $where;
@@ -400,6 +427,10 @@ const baseSchema = {
     send_at: Joi.date(),
     reject_status_id: Joi.number(),
     is_active: Joi.boolean(),
+    report_send_at: Joi.date(),
+    report_accept_at: Joi.date(),
+    closed_at: Joi.date(),
+    report_file: Joi.string(),
 };
 
 const createSchema = Joi.object({
@@ -594,6 +625,7 @@ const methods = {
                 "namecard_file",
                 "ppt_report_file",
                 "poster_report_file",
+                "report_file",
             ];
 
             const uploadedPaths = await uploadFiles(req, fileFields);
@@ -661,6 +693,7 @@ const methods = {
                 "namecard_file",
                 "ppt_report_file",
                 "poster_report_file",
+                "report_file",
             ];
 
             const uploadedPaths = await uploadFiles(req, fileFields);

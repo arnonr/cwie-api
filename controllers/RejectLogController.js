@@ -3,53 +3,73 @@ const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
 
 const prisma = new PrismaClient();
-const $table = "reject_status";
+const $table = "reject_log";
 
+// ฟิลด์ที่ต้องการ Select รวมถึง join
+const selectField = {
+    id: true,
+    comment: true,
+    user_id: true,
+    user_detail: {
+        select: {
+            id: true,
+            username: true,
+            name: true,
+        },
+    },
+    form_id: true,
+    form_detail: {
+        select: {
+            form_number: true,
+        },
+    },
+    reject_status_id: true,
+    reject_status_detail: {
+        select: {
+            id: true,
+            name: true,
+            form_status_id: true,
+        },
+    },
+    is_active: true,
+};
 const filterData = (req) => {
-    const { id, name, is_active, form_status_id } = req.query;
+    const { id, comment, user_id, form_id, reject_status_id, is_active } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
         deleted_at: null,
         ...(id && { id: Number(id) }),
-        ...(name && { name: { contains: name } }),
-        ...(is_active && { is_active: JSON.parse(is_active) }),
-        ...(form_status_id && { form_status_id: Number(form_status_id) }),
+        ...(comment && { comment: { contains: comment } }),
+        ...(user_id && { user_id: Number(user_id) }),
+        ...(form_id && { form_id: Number(form_id) }),
+        ...(reject_status_id && { reject_status_id: Number(reject_status_id) }),
+        ...(is_active && { is_active: Number(is_active) }),
     };
 
     return $where;
 };
 
 const baseSchema = {
-    name: Joi.string(),
+    id: Joi.number(),
+    comment: Joi.string().allow(null, ""),
+    user_id: Joi.number(),
+    form_id: Joi.number(),
+    reject_status_id: Joi.number(),
     is_active: Joi.boolean().default(true),
-    form_status_id: Joi.number(),
 };
 
 const createSchema = Joi.object({
     ...baseSchema,
-    name: baseSchema.name.required(),
-    form_status_id: baseSchema.form_status_id.required(),
+    user_id: baseSchema.user_id.required(),
+    form_id: baseSchema.form_id.required(),
+    reject_status_id: baseSchema.reject_status_id.required(),
 });
 
 const updateSchema = Joi.object(baseSchema);
 
 const validateCreate = (data) => createSchema.validate(data);
 const validateUpdate = (data) => updateSchema.validate(data);
-
-// ฟิลด์ที่ต้องการ Select รวมถึง join
-const selectField = {
-    id: true,
-    name: true,
-    is_active: true,
-    form_status_id: true,
-    form_status_detail: {
-        select: {
-            id: true,
-            name: true,
-        },
-    },
-};
 
 const methods = {
     async onGetAll(req, res) {
@@ -173,7 +193,6 @@ const methods = {
                 },
                 data: {
                     deleted_at: new Date(),
-                    deleted_by: req.user?.name,
                 },
             });
 
