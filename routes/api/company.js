@@ -4,7 +4,7 @@ const cacheMiddleware = require("../middleware/cacheMiddleware"); // import midd
 
 const controllers = require("../../controllers/CompanyController");
 
-router.get("/", cacheMiddleware, controllers.onGetAll);
+router.get("/",  controllers.onGetAll);
 router.get("/:id", controllers.onGetById);
 
 router.get("/get-by-uuid/:uuid", controllers.onGetByuuID);
