@@ -275,7 +275,11 @@ const filterData = (req) => {
         ...(visitor_id && { visitor_id: Number(visitor_id) }),
         ...(division_head_id && { division_head_id: Number(division_head_id) }),
         ...(faculty_head_id && { faculty_head_id: Number(faculty_head_id) }),
-        ...(form_status_id && { form_status_id: Number(form_status_id) }),
+        ...(form_status_id && {
+            form_status_id: {
+                in: form_status_id.split(',').map(Number)
+            }
+        }),
         ...(start_date && { start_date: { gte: new Date(start_date) } }),
         ...(end_date && { end_date: { lte: new Date(end_date) } }),
         ...(co_name && { co_name: { contains: co_name } }),
