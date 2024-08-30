@@ -261,12 +261,43 @@ const filterData = (req) => {
         is_active,
         report_send_at,
         report_accept_at,
-        closed_at
+        closed_at,
+        search_name,
+        student_code,
+        company_name,
+
     } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
+    const nameArray = search_name ? search_name.split(' ') : [];
+
     let $where = {
         deleted_at: null,
+        ...company_name && { company_detail: { name: { contains: company_name, mode: 'insensitive' } } },
+        ...student_code && { student_detail: { student_code: { contains: student_code } } },
+        ...(search_name && {
+            student_detail: {
+                OR: [
+                    // Search for full name in firstname or lastname
+                    { firstname: { contains: search_name, mode: 'insensitive' } },
+                    { surname: { contains: search_name, mode: 'insensitive' } },
+                    // Search for first word in firstname and last word in lastname
+                    {
+                    AND: [
+                        { firstname: { contains: nameArray[0], mode: 'insensitive' } },
+                        { surname: { contains: nameArray[nameArray.length - 1], mode: 'insensitive' } }
+                    ]
+                    },
+                    // Search for each word in either firstname or lastname
+                    ...nameArray.map(name => ({
+                    OR: [
+                        { firstname: { contains: name, mode: 'insensitive' } },
+                        { surname: { contains: name, mode: 'insensitive' } }
+                    ]
+                    }))
+                ]
+            }
+        }),
         ...(id && { id: Number(id) }),
         ...(uuid && { uuid: { contains: uuid } }),
         ...(student_id && { student_id: Number(student_id) }),
@@ -521,11 +552,11 @@ const methods = {
             });
 
             res.status(200).json({
-                data: items,
                 totalData: other.$count,
                 totalPage: other.$totalPage,
                 currentPage: other.$currentPage,
                 msg: "success",
+                data: items,
             });
         } catch (error) {
             console.error("Error fetching data:", error); // Log error for debugging
