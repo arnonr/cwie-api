@@ -265,38 +265,80 @@ const filterData = (req) => {
         search_name,
         student_code,
         company_name,
-
+        faculty_id,
+        division_id,
+        advisor_id,
     } = req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
-    const nameArray = search_name ? search_name.split(' ') : [];
+    const nameArray = search_name ? search_name.split(" ") : [];
 
     let $where = {
         deleted_at: null,
-        ...company_name && { company_detail: { name: { contains: company_name, mode: 'insensitive' } } },
-        ...student_code && { student_detail: { student_code: { contains: student_code } } },
+        ...(company_name && {
+            company_detail: {
+                name: { contains: company_name, mode: "insensitive" },
+            },
+        }),
+        ...(student_code && {
+            student_detail: { student_code: { contains: student_code } },
+        }),
         ...(search_name && {
             student_detail: {
                 OR: [
                     // Search for full name in firstname or lastname
-                    { firstname: { contains: search_name, mode: 'insensitive' } },
-                    { surname: { contains: search_name, mode: 'insensitive' } },
+                    {
+                        firstname: {
+                            contains: search_name,
+                            mode: "insensitive",
+                        },
+                    },
+                    { surname: { contains: search_name, mode: "insensitive" } },
                     // Search for first word in firstname and last word in lastname
                     {
-                    AND: [
-                        { firstname: { contains: nameArray[0], mode: 'insensitive' } },
-                        { surname: { contains: nameArray[nameArray.length - 1], mode: 'insensitive' } }
-                    ]
+                        AND: [
+                            {
+                                firstname: {
+                                    contains: nameArray[0],
+                                    mode: "insensitive",
+                                },
+                            },
+                            {
+                                surname: {
+                                    contains: nameArray[nameArray.length - 1],
+                                    mode: "insensitive",
+                                },
+                            },
+                        ],
                     },
                     // Search for each word in either firstname or lastname
-                    ...nameArray.map(name => ({
-                    OR: [
-                        { firstname: { contains: name, mode: 'insensitive' } },
-                        { surname: { contains: name, mode: 'insensitive' } }
-                    ]
-                    }))
-                ]
-            }
+                    ...nameArray.map((name) => ({
+                        OR: [
+                            {
+                                firstname: {
+                                    contains: name,
+                                    mode: "insensitive",
+                                },
+                            },
+                            {
+                                surname: {
+                                    contains: name,
+                                    mode: "insensitive",
+                                },
+                            },
+                        ],
+                    })),
+                ],
+            },
+        }),
+        ...(faculty_id && {
+            student_detail: { faculty_id: Number(faculty_id) },
+        }),
+        ...(division_id && {
+            student_detail: { division_id: Number(division_id) },
+        }),
+        ...(advisor_id && {
+            student_detail: { advisor_id: Number(advisor_id) },
         }),
         ...(id && { id: Number(id) }),
         ...(uuid && { uuid: { contains: uuid } }),
@@ -308,8 +350,8 @@ const filterData = (req) => {
         ...(faculty_head_id && { faculty_head_id: Number(faculty_head_id) }),
         ...(form_status_id && {
             form_status_id: {
-                in: form_status_id.split(',').map(Number)
-            }
+                in: form_status_id.split(",").map(Number),
+            },
         }),
         ...(start_date && { start_date: { gte: new Date(start_date) } }),
         ...(end_date && { end_date: { lte: new Date(end_date) } }),
@@ -401,8 +443,12 @@ const filterData = (req) => {
         ...(send_at && { send_at: { gte: new Date(send_at) } }),
         ...(reject_status_id && { reject_status_id: Number(reject_status_id) }),
         ...(is_active && { is_active: JSON.parse(is_active) }),
-        ...(report_send_at && { report_send_at: { gte: new Date(report_send_at) } }),
-        ...(report_accept_at && {report_accept_at: { gte: new Date(report_accept_at) }}),
+        ...(report_send_at && {
+            report_send_at: { gte: new Date(report_send_at) },
+        }),
+        ...(report_accept_at && {
+            report_accept_at: { gte: new Date(report_accept_at) },
+        }),
         ...(closed_at && { closed_at: { gte: new Date(closed_at) } }),
     };
 

@@ -31,10 +31,12 @@ const selectField = {
             form_status_id: true,
         },
     },
+    created_at: true,
     is_active: true,
 };
 const filterData = (req) => {
-    const { id, comment, user_id, form_id, reject_status_id, is_active } = req.query;
+    const { id, comment, user_id, form_id, reject_status_id, is_active } =
+        req.query;
 
     // id && เป็นการใช้การประเมินแบบ short-circuit ซึ่งหมายความว่าถ้า id มีค่าเป็น truthy (เช่น ไม่ใช่ null, undefined, 0, false, หรือ "" เป็นต้น) จะดำเนินการด้านหลัง &&
     let $where = {
