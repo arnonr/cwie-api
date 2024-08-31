@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 const $table = "division";
 
 const filterData = (req) => {
-    const { id, code, name, phone, email, department_id, is_active } = req.query;
+    const { id, code, name, phone, email, department_id, is_active } =
+        req.query;
 
     let $where = {
         deleted_at: null,
@@ -50,8 +51,7 @@ const selectField = {
 };
 
 const getIdByCreate = async (code, name, department_id) => {
-
-    if(!code || !name || !department_id) return null;
+    if (!code || !name || !department_id) return null;
 
     const item = await prisma[$table].upsert({
         where: {
@@ -76,7 +76,9 @@ const methods = {
             const other = await countDataAndOrder(prisma, req, $where, $table);
 
             const items = await prisma[$table].findMany({
-                select: selectField,
+                select: req.query.selectField
+                    ? JSON.parse(req.query.selectField)
+                    : selectField,
                 where: $where,
                 orderBy: other.$orderBy,
                 skip: other.$offset,

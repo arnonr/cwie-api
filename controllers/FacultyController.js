@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
 const { countDataAndOrder } = require("../utils/pagination");
-const axios = require('axios');
+const axios = require("axios");
 const prisma = new PrismaClient();
 const $table = "faculty";
 
@@ -52,8 +52,7 @@ const selectField = {
 
 const hrisFaculty = async () => {
     try {
-
-        dataParams = {}
+        dataParams = {};
 
         const config = {
             method: "post",
@@ -69,15 +68,13 @@ const hrisFaculty = async () => {
         }
 
         return response.data.data;
-
-    }catch (error) {
+    } catch (error) {
         // console.log(error);
         throw error;
     }
 };
 
 const getIdByCode = async (code) => {
-
     const item = await prisma[$table].findUnique({
         where: {
             code,
@@ -89,16 +86,16 @@ const getIdByCode = async (code) => {
 const getIdByCreate = async (code, name) => {
     const item = await prisma[$table].upsert({
         where: {
-            code: code
+            code: code,
         },
         update: {
             // name: name
         },
         create: {
             code: code,
-            name: name
-        }
-    })
+            name: name,
+        },
+    });
     return item.id;
 };
 
@@ -109,7 +106,9 @@ const methods = {
             const other = await countDataAndOrder(prisma, req, $where, $table);
 
             const items = await prisma[$table].findMany({
-                select: selectField,
+                select: req.query.selectField
+                    ? JSON.parse(req.query.selectField)
+                    : selectField,
                 where: $where,
                 orderBy: other.$orderBy,
                 skip: other.$offset,
@@ -154,7 +153,7 @@ const methods = {
             });
         } catch (error) {
             console.error("Error fetching item by ID:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(404).json({ msg: error.message });
@@ -177,7 +176,7 @@ const methods = {
             res.status(201).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error creating item:", error);
-            if(error.code === "P2002") {
+            if (error.code === "P2002") {
                 return res.status(409).json({ msg: "Item already exists" });
             }
             res.status(500).json({ msg: error.message });
@@ -203,7 +202,7 @@ const methods = {
             res.status(200).json({ ...item, msg: "success" });
         } catch (error) {
             console.error("Error updating item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
@@ -231,7 +230,7 @@ const methods = {
             res.status(200).json({ msg: "success" });
         } catch (error) {
             console.error("Error deleting item:", error);
-            if(error.code === "P2025") {
+            if (error.code === "P2025") {
                 return res.status(404).json({ msg: "Item not found" });
             }
             res.status(400).json({ msg: error.message });
@@ -246,15 +245,17 @@ const methods = {
                 const faculty_code = faculty.faculty_code;
                 const faculty_name_th = faculty.faculty_name_th;
 
-                const fac_id = await getIdByCreate(faculty_code, faculty_name_th);
+                const fac_id = await getIdByCreate(
+                    faculty_code,
+                    faculty_name_th
+                );
             }
 
-            res.status(200).json({data: data, msg: "success" });
+            res.status(200).json({ data: data, msg: "success" });
         } catch (error) {
             res.status(500).json({ msg: error.message });
         }
     },
-
 };
 
 module.exports = { ...methods, getIdByCreate, getIdByCode };
