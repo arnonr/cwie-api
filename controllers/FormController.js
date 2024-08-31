@@ -646,7 +646,7 @@ const methods = {
                     );
                     if (filePath === "error") {
                         errors_upload.push(field);
-                    } else {
+                    } else if (filePath !== null) {
                         paths[field] = filePath;
                     }
                 }
@@ -714,7 +714,7 @@ const methods = {
                     );
                     if (filePath === "error") {
                         errors_upload.push(field);
-                    } else {
+                    } else if (filePath !== null) {
                         paths[field] = filePath;
                     }
                 }
