@@ -59,6 +59,7 @@ const hrisFindPersonnel = async (searchParams) => {
         }
 
         dataParams = {};
+        dataParams["special_params"] = "a33d7efc965a"; // get_prefix
 
         if (searchParams.firstname)
             dataParams["firstname"] = searchParams.firstname;
@@ -469,15 +470,16 @@ const methods = {
                 const lastname_en = person.lastname_en;
                 const fac_code = person.faculty_code;
                 const department_code = person.department_code;
+                const prefix = person.prefix_name_th;
 
                 const fac_id = await facultyController.getIdByCode(fac_code);
                 const dept_id = await departmentController.getIdByCode(
                     department_code
                 );
 
-                const data = {
+                const profile = {
                     person_key: person_key,
-                    prefix: null,
+                    prefix: prefix,
                     firstname: firstname_th,
                     surname: lastname_th,
                     faculty_id: fac_id,
@@ -490,7 +492,7 @@ const methods = {
                 };
 
                 // console.log(data);
-                await upsertTeacherProfile(person_key, data);
+                await upsertTeacherProfile(person_key, profile);
             }
 
             res.status(200).json({ data: data, msg: "success" });
