@@ -424,8 +424,8 @@ model form {
     request_name                  String?
     request_position              String?
     request_document_date         DateTime?        @db.Date
-    request_document_number       String?
-    max_respone_date              DateTime?        @db.Date
+    request_document_number       Int?
+    max_response_date             DateTime?        @db.Date
     send_document_date            DateTime?        @db.Date
     send_document_number          String?
     response_document_file        String?
