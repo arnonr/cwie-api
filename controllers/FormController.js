@@ -869,7 +869,9 @@ const methods = {
 
     async onMapTeacherStudent(req, res) {
 
-        const students = req.body;
+        const students = req.body.students;
+        const semester_id = req.body.semester_id;
+        console.log(semester_id);
         let statusList = [];
 
         try {
@@ -904,6 +906,7 @@ const methods = {
                         const formUpdate = await prisma.form.updateMany({
                             where: {
                                 student_id: studentItem.id,
+                                semester_id: semester_id,
                                 is_active: true,
                             },
                             data: {
