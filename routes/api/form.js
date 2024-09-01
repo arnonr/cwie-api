@@ -3,6 +3,7 @@ const router = express.Router();
 
 const controllers = require("../../controllers/FormController");
 
+router.post("/map-teacher-student", controllers.onMapTeacherStudent);
 router.get("/", controllers.onGetAll);
 router.get("/get-by-uuid/:uuid", controllers.onGetByuuID);
 router.get("/:id", controllers.onGetById);

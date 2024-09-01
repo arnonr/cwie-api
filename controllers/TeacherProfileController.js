@@ -547,11 +547,6 @@ const methods = {
             res.status(500).json({ msg: error.message });
         }
     },
-
-    async onMapTeacherStudent(req, res) {
-
-
-    }
 };
 
 module.exports = { ...methods };

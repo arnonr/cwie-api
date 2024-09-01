@@ -148,6 +148,7 @@ model teacher_profile {
 model student_profile {
     id      Int    @id @default(autoincrement())
     uuid    String @default(uuid()) // ฟิลด์ UUID สำหรับอ้างอิง
+    student_code        String      @unique
     user_id Int   @unique
     user_detail    user?  @relation(fields: [user_id], references: [id], name: "StudentProfileToUser")
     prefix              String?
@@ -169,7 +170,6 @@ model student_profile {
     district_detail     district?        @relation(fields: [district_id], references: [id])
     sub_district_id     Int?
     sub_district_detail sub_district?    @relation(fields: [sub_district_id], references: [id])
-    student_code        String
     class_year          String?
     class_room          String?
     advisor_id          Int?

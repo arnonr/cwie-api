@@ -866,6 +866,74 @@ const methods = {
             res.status(400).json({ msg: error.message });
         }
     },
+
+    async onMapTeacherStudent(req, res) {
+
+        const students = req.body;
+        let statusList = [];
+
+        try {
+            for (const student of students) {
+                const { first_name, last_name, student_code } = student;
+                let status = "error";
+                let error_message = [];
+
+                try {
+                    const teacherItem = await prisma.teacher_profile.findFirst({
+                        where: {
+                            firstname: first_name,
+                            surname: last_name,
+                        },
+                    });
+
+                    if (!teacherItem) {
+                        error_message.push("teacher_not_found");
+                    }
+
+                    const studentItem = await prisma.student_profile.findUnique({
+                        where: {
+                            student_code: student_code,
+                        },
+                    });
+
+                    if (!studentItem) {
+                        error_message.push("student_not_found");
+                    }
+
+                    if (teacherItem && studentItem) {
+                        const formUpdate = await prisma.form.updateMany({
+                            where: {
+                                student_id: studentItem.id,
+                                is_active: true,
+                            },
+                            data: {
+                                visitor_id: teacherItem.id,
+                            },
+                        });
+
+                        if (formUpdate.count === 0) {
+                            error_message.push("form_not_found");
+                        } else {
+                            status = "success";
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error processing student ${student_code}: ${error.message}`);
+                    error_message.push("unexpected_error");
+                }
+
+                if (status === "success") {
+                    statusList.push({ student_code, status });
+                } else {
+                    statusList.push({ student_code, status, error_message: error_message.join(", ") });
+                }
+            }
+
+            return res.status(200).json({data:statusList, msg: "success"});
+        }catch (error) {
+            res.status(500).json({ msg: error.message });
+        }
+    }
 };
 
 module.exports = { ...methods };
