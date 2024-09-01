@@ -929,7 +929,7 @@ const methods = {
                 }
             }
 
-            return res.status(200).json({data:statusList, msg: "success"});
+            return res.status(200).json({msg: "success", data:statusList});
         }catch (error) {
             res.status(500).json({ msg: error.message });
         }
