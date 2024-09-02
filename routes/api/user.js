@@ -13,6 +13,7 @@ const loginValidator = [
 
 // router.post("/login", controllers.onLogin);
 // router.post("/login", controllers.onLogin);
+router.get("/count-all", controllers.onCountAll);
 router.get("/:uuid", controllers.onGetByUUID);
 router.get("/", controllers.onGetAll);
 

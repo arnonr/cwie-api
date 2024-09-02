@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
-const { countDataAndOrder } = require("../utils/pagination");
+const { countDataAndOrder, countData } = require("../utils/pagination");
 
 const prisma = new PrismaClient();
 const $table = "user";
@@ -95,6 +95,12 @@ const schema = Joi.object({
 });
 
 const methods = {
+    async onCountAll(req, res){
+        const $where = filterData(req);
+        const count = await countData(prisma, $table, $where);
+        res.status(200).json({ msg: "success", count: count });
+    },
+
     async onGetAll(req, res) {
         try {
             const $where = filterData(req);
