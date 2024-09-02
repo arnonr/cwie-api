@@ -41,6 +41,7 @@ model user {
     student_profile student_profile? @relation("StudentProfileToUser")
     staff_profile   staff_profile?   @relation("StaffProfileToUser")
     reject_log      reject_log[]
+    login_log       login_log[]
 
     @@index([username], name: "idx_username")
     @@index([username, deleted_at], name: "idx_username_deleted_at")
@@ -597,4 +598,19 @@ model sub_district {
     company                         company[]
     forms_as_sub_district           form[]            @relation("subDistrictRelation")
     forms_workplace_as_sub_district form[]            @relation("workplaceSubDistrictRelation")
+}
+
+model login_log {
+    id                              Int               @id @default(autoincrement())
+    user_id                         Int
+    user_detail                     user              @relation(fields: [user_id], references: [id])
+    ip_address                      String?
+    user_agent                      String?
+    status                          Int
+    is_active                       Boolean           @default(true)
+    created_at                      DateTime          @default(now())
+    created_by                      String?           @db.VarChar(255)
+    updated_at                      DateTime          @updatedAt
+    updated_by                      String?           @db.VarChar(255)
+    deleted_at                      DateTime?
 }

@@ -6,6 +6,7 @@ const secretKey = process.env.SECRET_KEY; // ใช้ secret key เดีย�
 const facultyController = require("./FacultyController");
 const divisionController = require("./DivisionController");
 const departmentController = require("./DepartmentController");
+const loginLogController = require("./LoginLogController");
 const $table = "user";
 const $student_profile = "student_profile";
 
@@ -95,6 +96,29 @@ const upsertStudentProfile = async (user_id, data) => {
     }
 };
 
+const updateTeacherProfileUser = async (person_key, user_id) => {
+    try {
+        const response = await prisma.teacher_profile.update({
+            where: {
+                person_key: person_key,
+            },
+            data: {
+                user_id: user_id,
+            },
+        });
+
+        return response;
+    } catch (error) {
+        if (error.code === 'P2025') {  // P2025 is the code for "Record to update not found."
+            // Record not found, return null or handle as needed
+            return null;
+        } else {
+            throw error; // Re-throw other errors
+        }
+    }
+};
+
+
 const upsertStaffProfile = async (user_id, data) => {
     try {
         const response = await prisma.staff_profile.upsert({
@@ -112,12 +136,10 @@ const upsertStaffProfile = async (user_id, data) => {
 
         return response;
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         throw error;
     }
 };
-
-
 
 const decryptPassword = (encryptedPassword) => {
     const bytes = CryptoJS.AES.decrypt(encryptedPassword, secretKey);
@@ -219,6 +241,7 @@ const methods = {
                     if (item.status_id == 1) {
                         throw new Error("อยู่ระหว่างตรวจสอบข้อมูลการลงทะเบียน");
                     } else if (item.status_id == 2) {
+                        await loginLogController.saveLog(item.id, req.body.username, 1, req.clientInfo.ip, req.clientInfo.userAgent);
                         return handleLoginSuccess(item, loginMethod, res);
                     } else {
                         throw new Error(
@@ -388,12 +411,25 @@ const methods = {
                             address: req.body.address,
                         }
 
-                        console.log(data);
+                        // console.log(data);
                         profile = await upsertStaffProfile(user_id, data);
+                        const teacher = await updateTeacherProfileUser(person_key, user_id);
+
+                        if(teacher){
+                            const updateUserStatus = await prisma.user.update({
+                                where: {
+                                    id: user_id
+                                },
+                                data: {
+                                    status_id: 2, //อนุมัติ
+                                    group_id: 6, //อาจารย์
+                                }
+                            });
+                        }
                     }
                 }
 
-                res.status(200).json({ ...user, profile, icit_account: accountInfo, msg: "success" });
+                res.status(200).json({ ...user, profile, msg: "success" });
             }else{
                 throw new Error("ICIT account not found");
             }

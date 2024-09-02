@@ -28,6 +28,7 @@ const form = require("./api/form");
 const document = require("./api/document");
 const rejectLog = require("./api/reject-log");
 const helper = require("./api/helper");
+const loginLog = require("./api/login-log");
 
 router.use(
     // `${process.env.SUB_URL}/api/v${process.env.API_VERSION}`,
@@ -57,7 +58,8 @@ router.use(
     router.use("/form", form),
     router.use("/document", document),
     router.use("/reject-log", rejectLog),
-    router.use("/helper", helper)
+    router.use("/helper", helper),
+    router.use("/login-log", loginLog),
 );
 
 module.exports = router;
