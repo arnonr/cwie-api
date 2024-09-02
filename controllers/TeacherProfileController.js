@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const Joi = require("joi");
-const { countDataAndOrder } = require("../utils/pagination");
+const { countDataAndOrder, countData } = require("../utils/pagination");
 const axios = require("axios");
 // const prisma = new PrismaClient();
 const $table = "teacher_profile";
@@ -205,6 +205,7 @@ const selectField = {
     },
     is_active: true,
 };
+
 const filterData = (req) => {
     const {
         id,
@@ -232,7 +233,7 @@ const filterData = (req) => {
         ...(id && { id: Number(id) }),
         ...(uuid && { uuid: uuid }),
         ...(executive_position && { executive_position: executive_position }),
-        ...(user_id && { user_id: Number(user_id) }),
+        // ...(user_id && { user_id: Number(user_id) }),
         ...(person_key && { person_key: person_key }),
         ...(firstname && { firstname: { contains: firstname } }),
         ...(surname && { surname: { contains: surname } }),
@@ -248,6 +249,18 @@ const filterData = (req) => {
         ...(sub_district_id && { sub_district_id: Number(sub_district_id) }),
         ...(is_active && { is_active: JSON.parse(is_active) }),
     };
+
+    // Handling `user_id` conditions
+    if (user_id === 'not_null') {
+        // If user_id should not be null
+        $where.user_id = { not: null };  // Replace with the correct syntax for your query language
+    } else if (user_id === null) {
+        // If user_id should be null
+        $where.user_id = null;
+    } else if (user_id) {
+        // If user_id is a specific number
+        $where.user_id = Number(user_id);
+    }
 
     return $where;
 };
@@ -286,6 +299,13 @@ const validateCreate = (data) => createSchema.validate(data);
 const validateUpdate = (data) => updateSchema.validate(data);
 
 const methods = {
+
+    async onCountAll(req, res){
+        const $where = filterData(req);
+        const count = await countData(prisma, $table, $where);
+        res.status(200).json({ msg: "success", count: count });
+    },
+
     async onGetAll(req, res) {
         try {
             const $where = filterData(req);

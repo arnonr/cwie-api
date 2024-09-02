@@ -7,7 +7,7 @@ const controllers = require("../../controllers/TeacherProfileController");
 router.post("/hris-sync-teacher", controllers.onHrisSyncTeacher);
 router.post("/hris-sync-teacher-by-personkey/:person_key", controllers.onHrisSyncTeacherByPersonKey);
 router.get("/hris-find-personnel", controllers.onHrisFindPersonnel);
-
+router.get("/count-all", controllers.onCountAll);
 router.get("/", controllers.onGetAll);
 router.get("/:id", controllers.onGetById);
 

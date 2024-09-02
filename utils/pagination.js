@@ -35,4 +35,13 @@ const countDataAndOrder = async (prisma, req, $where, $table) => {
     };
 };
 
-module.exports = { countDataAndOrder };
+const countData = async(prisma, $table, $where) => {
+    // Count
+    let $count = await prisma[$table].count({
+        where: $where,
+    });
+
+    return $count;
+};
+
+module.exports = { countDataAndOrder, countData };

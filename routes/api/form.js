@@ -6,6 +6,7 @@ const controllers = require("../../controllers/FormController");
 router.post("/add-send-book", controllers.onAddSendBook);
 router.post("/add-request-book", controllers.onAddRequestBook);
 router.post("/map-teacher-student", controllers.onMapTeacherStudent);
+router.get("/count-all", controllers.onCountAll);
 router.get("/", controllers.onGetAll);
 router.get("/get-by-uuid/:uuid", controllers.onGetByuuID);
 router.get("/:id", controllers.onGetById);
