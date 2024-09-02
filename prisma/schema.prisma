@@ -427,7 +427,7 @@ model form {
     request_document_number       Int?
     max_response_date             DateTime?        @db.Date
     send_document_date            DateTime?        @db.Date
-    send_document_number          String?
+    send_document_number          Int?
     response_document_file        String?
     response_send_at              DateTime?        @db.Date
     response_result               String?

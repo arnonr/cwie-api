@@ -368,7 +368,7 @@ const filterData = (req) => {
             request_document_date: { gte: new Date(request_document_date) },
         }),
         ...(request_document_number && {
-            request_document_number: { contains: request_document_number },
+            request_document_number: Number(request_document_number),
         }),
         ...(max_response_date && {
             max_response_date: { gte: new Date(max_response_date) },
@@ -377,7 +377,7 @@ const filterData = (req) => {
             send_document_date: { gte: new Date(send_document_date) },
         }),
         ...(send_document_number && {
-            send_document_number: { contains: send_document_number },
+            send_document_number: Number(send_document_number),
         }),
         ...(response_send_at && {
             response_send_at: { gte: new Date(response_send_at) },
@@ -473,10 +473,10 @@ const baseSchema = {
     request_name: Joi.string(),
     request_position: Joi.string(),
     request_document_date: Joi.date(),
-    request_document_number: Joi.string(),
+    request_document_number: Joi.number(),
     max_response_date: Joi.date(),
     send_document_date: Joi.date(),
-    send_document_number: Joi.string(),
+    send_document_number: Joi.number(),
     response_send_at: Joi.date(),
     response_result: Joi.string(),
     response_province_id: Joi.number(),
@@ -595,8 +595,8 @@ const getNextRequestDocumentNumber = async (request_document_date) => {
         },
         where: {
             request_document_date: {
-            gte: new Date(`${year}-01-01`),
-            lt: new Date(`${year + 1}-01-01`)
+                gte: new Date(`${year}-01-01`),
+                lt: new Date(`${year + 1}-01-01`)
             }
         }
     });
@@ -607,6 +607,31 @@ const getNextRequestDocumentNumber = async (request_document_date) => {
         : 1;
 
     return nextRequestDocumentNumber;
+};
+
+const getNextSendDocumentNumber = async (send_document_date) => {
+    // Extract the year from the send_document_date
+    const year = new Date(send_document_date).getFullYear();
+
+    // Find the maximum send_document_number within the same year
+    const maxDocumentNumber = await prisma[$table].aggregate({
+        _max: {
+            send_document_number: true
+        },
+        where: {
+            send_document_date: {
+                gte: new Date(`${year}-01-01`),
+                lt: new Date(`${year + 1}-01-01`)
+            }
+        }
+    });
+
+    // Calculate the next send_document_number
+    const nextSendDocumentNumber = maxDocumentNumber._max.send_document_number
+        ? new Number(maxDocumentNumber._max.send_document_number) + 1
+        : 1;
+
+    return nextSendDocumentNumber;
 };
 
 const methods = {
@@ -965,69 +990,6 @@ const methods = {
     },
 
     async onAddRequestBook(req, res) {
-
-    //     $request->validate(["id as required"]);
-    //     //
-    //     $updateForm = Form::whereIn("id", $request->id)->update([
-    //         "request_document_number" => $request->request_document_number,
-    //         "request_document_date" => $request->request_document_date,
-    //         "max_response_date" => $request->max_response_date,
-    //         "updated_by" => "arnonr",
-    //     ]);
-
-    //     $check = Form::whereIn("id", $request->id)
-    //         ->where("status_id", "<", "6")
-    //         ->update([
-    //             "status_id" => 6,
-    //         ]);
-
-    //     $student_id = [];
-
-    //     $form = Form::whereIn("id", $request->id)->get();
-    //     foreach ($form as $value) {
-    //         array_push($student_id, $value->student_id);
-    //     }
-    //     // $student_id
-
-    //     $check1 = Student::whereIn("id", $student_id)
-    //         ->where("status_id", "<", "6")
-    //         ->update([
-    //             "status_id" => 6,
-    //         ]);
-
-    //     // รอส่งเมลแจ้งเตือนหนังสือขอความอนุเคราะห์
-    //     if ($request->send_mail == 1) {
-    //         $student_code = [];
-    //         $students = Form::whereIn("id", $request->id)
-    //             ->with("student")
-    //             ->get();
-    //         foreach ($students as $key => $value) {
-    //             $student_code[] = $value->student->student_code;
-    //         }
-
-    //         $subject =
-    //             "หนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษา คณะบริหารธุรกิจ มจพ.ระยอง";
-    //         $body =
-    //             "ท่านได้รับการอนุมัติหนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษา คณะบริหารธุรกิจ มจพ.ระยอง เรียบร้อยแล้ว กรุณาตรวจสอบที่ระบบสหกิจศึกษา";
-    //         $this->sendStudentMail($student_code, $subject, $body);
-    //     }
-    //     // ส่งเมลแจ้งเตือนหนังสือส่งตัว
-
-    //     $responseData = [
-    //         "message" => "success",
-    //     ];
-
-    //     return response()->json($responseData, 200);
-    // }
-
-                // data input
-            // request_document_date
-            // max_response_date
-            // form ids
-            //request_document_number gen yea + 1
-            // update form_status=7 where form_status_id < 1 ออกหนังสือขอความอนุเคราะห์
-            // update student like form status = 7
-
         try{
             if(!req.body.ids) return res.status(400).json({msg: "ids is required"});
             if(!req.body.request_document_date) return res.status(400).json({msg: "request_document_date is required"});
@@ -1099,6 +1061,86 @@ const methods = {
                 const email = student.email;
                 const subject = "หนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษา";
                 const body = "ท่านได้รับการอนุมัติหนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษาเรียบร้อยแล้ว กรุณาตรวจสอบที่ระบบสหกิจศึกษา อุทยานเทคโนโลยี มจพ.";
+                helperController.sendEmail(email, subject, body);
+            });
+
+            res.status(200).json({ msg: "success" });
+
+        }catch (error) {
+            res.status(500).json({ msg: error.message });
+        }
+    },
+
+    async onAddSendBook(req, res) {
+        try{
+            if(!req.body.ids) return res.status(400).json({msg: "ids is required"});
+            if(!req.body.send_document_date) return res.status(400).json({msg: "send_document_date is required"});
+
+            const ids = req.body.ids.split(',').map(id => parseInt(id.trim(), 10));
+            const sendDocumentDate = req.body.send_document_date;
+
+            const nextSendDocumentNumber = await getNextSendDocumentNumber(sendDocumentDate);
+
+            const updateRequestDoc = await prisma.form.updateMany({
+                where: {
+                    id: { in: ids }
+                },
+                data: {
+                    send_document_number: nextSendDocumentNumber,
+                    send_document_date: new Date(sendDocumentDate), // Convert to Date objectrequestDocumentDate,
+                }
+            });
+
+            const updateFormStatus = await prisma.form.updateMany({
+                where: {
+                    id: { in: ids },
+                    form_status_id: {
+                        lt: 11
+                    }
+                },
+                data: {
+                    form_status_id: 11
+                }
+            });
+
+            // Fetch the student_ids from the form table based on the provided ids
+            const studentIdsResult = await prisma.form.findMany({
+                where: {
+                    id: { in: ids }
+                },
+                    select: {
+                    student_id: true
+                }
+            });
+
+            // Extract the student_ids into an array
+            const student_ids = studentIdsResult.map(form => form.student_id);
+
+            const updateStudentStatus = await prisma.student_profile.updateMany({
+                where: {
+                    id: { in: student_ids },
+                    status_id: {
+                        lt: 11
+                    }
+                },
+                data: {
+                    status_id: 11
+                }
+            });
+
+            const studentEmails = await prisma.student_profile.findMany({
+                where: {
+                    id: { in: student_ids }
+                },
+                    select: {
+                    email: true
+                }
+            });
+
+            studentEmails.forEach(student => {
+                const email = student.email;
+                const subject = "หนังสือส่งตัวเข้าฝึกสหกิจศึกษา";
+                const body = "ท่านได้รับการอนุมัติหนังสือส่งตัวเข้าฝึกสหกิจศึกษาเรียบร้อยแล้ว กรุณาตรวจสอบที่ระบบสหกิจศึกษา อุทยานเทคโนโลยี มจพ.";
                 helperController.sendEmail(email, subject, body);
             });
 
