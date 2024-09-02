@@ -304,6 +304,7 @@ const methods = {
                         username: username,
                         name: displayname,
                         email: req.body.email,
+                        phone: req.body.phone,
                         status_id: status_id,
                         group_id: group_id,
                         type_id: type_id,
