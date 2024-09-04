@@ -346,7 +346,7 @@ const filterData = (req) => {
         ...(student_id && { student_id: Number(student_id) }),
         ...(company_id && { company_id: Number(company_id) }),
         ...(semester_id && { semester_id: Number(semester_id) }),
-        ...(visitor_id && { visitor_id: Number(visitor_id) }),
+        // ...(visitor_id && { visitor_id: Number(visitor_id) }),
         ...(division_head_id && { division_head_id: Number(division_head_id) }),
         ...(faculty_head_id && { faculty_head_id: Number(faculty_head_id) }),
         ...(form_status_id && {
@@ -452,6 +452,18 @@ const filterData = (req) => {
         }),
         ...(closed_at && { closed_at: { gte: new Date(closed_at) } }),
     };
+
+    // Handling `user_id` conditions
+    if (visitor_id === 'not_null') {
+        // If user_id should not be null
+        $where.visitor_id = { not: null };  // Replace with the correct syntax for your query language
+    } else if (visitor_id === null) {
+        // If user_id should be null
+        $where.visitor_id = null;
+    } else if (visitor_id) {
+        // If user_id is a specific number
+        $where.visitor_id = Number(visitor_id);
+    }
 
     return $where;
 };
