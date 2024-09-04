@@ -603,18 +603,19 @@ const getNextRequestDocumentNumber = async (request_document_date) => {
     // Find the maximum request_document_number within the same year
     const maxDocumentNumber = await prisma[$table].aggregate({
         _max: {
-            request_document_number: true
+            request_document_number: true,
         },
         where: {
             request_document_date: {
                 gte: new Date(`${year}-01-01`),
-                lt: new Date(`${year + 1}-01-01`)
-            }
-        }
+                lt: new Date(`${year + 1}-01-01`),
+            },
+        },
     });
 
     // Calculate the next request_document_number
-    const nextRequestDocumentNumber = maxDocumentNumber._max.request_document_number
+    const nextRequestDocumentNumber = maxDocumentNumber._max
+        .request_document_number
         ? new Number(maxDocumentNumber._max.request_document_number) + 1
         : 1;
 
@@ -628,14 +629,14 @@ const getNextSendDocumentNumber = async (send_document_date) => {
     // Find the maximum send_document_number within the same year
     const maxDocumentNumber = await prisma[$table].aggregate({
         _max: {
-            send_document_number: true
+            send_document_number: true,
         },
         where: {
             send_document_date: {
                 gte: new Date(`${year}-01-01`),
-                lt: new Date(`${year + 1}-01-01`)
-            }
-        }
+                lt: new Date(`${year + 1}-01-01`),
+            },
+        },
     });
 
     // Calculate the next send_document_number
@@ -647,7 +648,7 @@ const getNextSendDocumentNumber = async (send_document_date) => {
 };
 
 const methods = {
-    async onCountAll(req, res){
+    async onCountAll(req, res) {
         const $where = filterData(req);
         const count = await countData(prisma, $table, $where);
         res.status(200).json({ msg: "success", count: count });
@@ -937,7 +938,6 @@ const methods = {
     },
 
     async onMapTeacherStudent(req, res) {
-
         const students = req.body.students;
         const semester_id = req.body.semester_id;
         console.log(semester_id);
@@ -961,11 +961,13 @@ const methods = {
                         error_message.push("teacher_not_found");
                     }
 
-                    const studentItem = await prisma.student_profile.findUnique({
-                        where: {
-                            student_code: student_code,
-                        },
-                    });
+                    const studentItem = await prisma.student_profile.findUnique(
+                        {
+                            where: {
+                                student_code: student_code,
+                            },
+                        }
+                    );
 
                     if (!studentItem) {
                         error_message.push("student_not_found");
@@ -990,184 +992,219 @@ const methods = {
                         }
                     }
                 } catch (error) {
-                    console.error(`Error processing student ${student_code}: ${error.message}`);
+                    console.error(
+                        `Error processing student ${student_code}: ${error.message}`
+                    );
                     error_message.push("unexpected_error");
                 }
 
                 if (status === "success") {
                     statusList.push({ student_code, status });
                 } else {
-                    statusList.push({ student_code, status, error_message: error_message.join(", ") });
+                    statusList.push({
+                        student_code,
+                        status,
+                        error_message: error_message.join(", "),
+                    });
                 }
             }
 
-            return res.status(200).json({msg: "success", data:statusList});
-        }catch (error) {
+            return res.status(200).json({ msg: "success", data: statusList });
+        } catch (error) {
             res.status(500).json({ msg: error.message });
         }
     },
 
     async onAddRequestBook(req, res) {
-        try{
-            if(!req.body.ids) return res.status(400).json({msg: "ids is required"});
-            if(!req.body.request_document_date) return res.status(400).json({msg: "request_document_date is required"});
-            if(!req.body.max_response_date) return res.status(400).json({msg: "max_response_date is required"});
+        try {
+            if (!req.body.ids)
+                return res.status(400).json({ msg: "ids is required" });
+            if (!req.body.request_document_date)
+                return res
+                    .status(400)
+                    .json({ msg: "request_document_date is required" });
+            if (!req.body.max_response_date)
+                return res
+                    .status(400)
+                    .json({ msg: "max_response_date is required" });
 
-            const ids = req.body.ids.split(',').map(id => parseInt(id.trim(), 10));
+            const ids = req.body.ids
+                .split(",")
+                .map((id) => parseInt(id.trim(), 10));
             const requestDocumentDate = req.body.request_document_date;
             const maxResponseDate = req.body.max_response_date;
-            const nextRequestDocumentNumber = await getNextRequestDocumentNumber(requestDocumentDate);
+            const nextRequestDocumentNumber =
+                await getNextRequestDocumentNumber(requestDocumentDate);
 
             const updateRequestDoc = await prisma.form.updateMany({
                 where: {
-                    id: { in: ids }
+                    id: { in: ids },
                 },
                 data: {
                     request_document_number: nextRequestDocumentNumber,
                     request_document_date: new Date(requestDocumentDate), // Convert to Date objectrequestDocumentDate,
                     max_response_date: new Date(maxResponseDate), // Convert to Date objectmaxResponseDate,
-                }
+                },
             });
 
             const updateFormStatus = await prisma.form.updateMany({
                 where: {
                     id: { in: ids },
                     form_status_id: {
-                        lt: 7
-                    }
+                        lt: 7,
+                    },
                 },
                 data: {
-                    form_status_id: 7
-                }
+                    form_status_id: 7,
+                },
             });
 
             // Fetch the student_ids from the form table based on the provided ids
             const studentIdsResult = await prisma.form.findMany({
                 where: {
-                    id: { in: ids }
+                    id: { in: ids },
                 },
-                    select: {
-                    student_id: true
-                }
+                select: {
+                    student_id: true,
+                },
             });
 
             // Extract the student_ids into an array
-            const student_ids = studentIdsResult.map(form => form.student_id);
+            const student_ids = studentIdsResult.map((form) => form.student_id);
 
-            const updateStudentStatus = await prisma.student_profile.updateMany({
-                where: {
-                    id: { in: student_ids },
-                    status_id: {
-                        lt: 7
-                    }
-                },
-                data: {
-                    status_id: 7
+            const updateStudentStatus = await prisma.student_profile.updateMany(
+                {
+                    where: {
+                        id: { in: student_ids },
+                        status_id: {
+                            lt: 7,
+                        },
+                    },
+                    data: {
+                        status_id: 7,
+                    },
                 }
-            });
+            );
 
             const studentEmails = await prisma.student_profile.findMany({
                 where: {
-                    id: { in: student_ids }
+                    id: { in: student_ids },
                 },
-                    select: {
-                    email: true
-                }
+                select: {
+                    email: true,
+                },
             });
 
-            studentEmails.forEach(student => {
+            studentEmails.forEach((student) => {
                 const email = student.email;
-                const subject = "หนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษา";
-                const body = "ท่านได้รับการอนุมัติหนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษาเรียบร้อยแล้ว กรุณาตรวจสอบที่ระบบสหกิจศึกษา อุทยานเทคโนโลยี มจพ.";
+                const subject =
+                    "หนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษา";
+                const body =
+                    "ท่านได้รับการอนุมัติหนังสือขอความอนุเคราะห์รับนักศึกษาเข้าฝึกสหกิจศึกษาเรียบร้อยแล้ว กรุณาตรวจสอบที่ระบบสหกิจศึกษา อุทยานเทคโนโลยี มจพ.";
                 helperController.sendEmail(email, subject, body);
             });
 
-            res.status(200).json({ msg: "success" });
-
-        }catch (error) {
+            res.status(200).json({
+                msg: "success",
+                document_number: nextRequestDocumentNumber,
+            });
+        } catch (error) {
             res.status(500).json({ msg: error.message });
         }
     },
 
     async onAddSendBook(req, res) {
-        try{
-            if(!req.body.ids) return res.status(400).json({msg: "ids is required"});
-            if(!req.body.send_document_date) return res.status(400).json({msg: "send_document_date is required"});
+        try {
+            if (!req.body.ids)
+                return res.status(400).json({ msg: "ids is required" });
+            if (!req.body.send_document_date)
+                return res
+                    .status(400)
+                    .json({ msg: "send_document_date is required" });
 
-            const ids = req.body.ids.split(',').map(id => parseInt(id.trim(), 10));
+            const ids = req.body.ids
+                .split(",")
+                .map((id) => parseInt(id.trim(), 10));
             const sendDocumentDate = req.body.send_document_date;
 
-            const nextSendDocumentNumber = await getNextSendDocumentNumber(sendDocumentDate);
+            const nextSendDocumentNumber = await getNextSendDocumentNumber(
+                sendDocumentDate
+            );
 
             const updateRequestDoc = await prisma.form.updateMany({
                 where: {
-                    id: { in: ids }
+                    id: { in: ids },
                 },
                 data: {
                     send_document_number: nextSendDocumentNumber,
                     send_document_date: new Date(sendDocumentDate), // Convert to Date objectrequestDocumentDate,
-                }
+                },
             });
 
             const updateFormStatus = await prisma.form.updateMany({
                 where: {
                     id: { in: ids },
                     form_status_id: {
-                        lt: 11
-                    }
+                        lt: 11,
+                    },
                 },
                 data: {
-                    form_status_id: 11
-                }
+                    form_status_id: 11,
+                },
             });
 
             // Fetch the student_ids from the form table based on the provided ids
             const studentIdsResult = await prisma.form.findMany({
                 where: {
-                    id: { in: ids }
+                    id: { in: ids },
                 },
-                    select: {
-                    student_id: true
-                }
+                select: {
+                    student_id: true,
+                },
             });
 
             // Extract the student_ids into an array
-            const student_ids = studentIdsResult.map(form => form.student_id);
+            const student_ids = studentIdsResult.map((form) => form.student_id);
 
-            const updateStudentStatus = await prisma.student_profile.updateMany({
-                where: {
-                    id: { in: student_ids },
-                    status_id: {
-                        lt: 11
-                    }
-                },
-                data: {
-                    status_id: 11
+            const updateStudentStatus = await prisma.student_profile.updateMany(
+                {
+                    where: {
+                        id: { in: student_ids },
+                        status_id: {
+                            lt: 11,
+                        },
+                    },
+                    data: {
+                        status_id: 11,
+                    },
                 }
-            });
+            );
 
             const studentEmails = await prisma.student_profile.findMany({
                 where: {
-                    id: { in: student_ids }
+                    id: { in: student_ids },
                 },
-                    select: {
-                    email: true
-                }
+                select: {
+                    email: true,
+                },
             });
 
-            studentEmails.forEach(student => {
+            studentEmails.forEach((student) => {
                 const email = student.email;
                 const subject = "หนังสือส่งตัวเข้าฝึกสหกิจศึกษา";
-                const body = "ท่านได้รับการอนุมัติหนังสือส่งตัวเข้าฝึกสหกิจศึกษาเรียบร้อยแล้ว กรุณาตรวจสอบที่ระบบสหกิจศึกษา อุทยานเทคโนโลยี มจพ.";
+                const body =
+                    "ท่านได้รับการอนุมัติหนังสือส่งตัวเข้าฝึกสหกิจศึกษาเรียบร้อยแล้ว กรุณาตรวจสอบที่ระบบสหกิจศึกษา อุทยานเทคโนโลยี มจพ.";
                 helperController.sendEmail(email, subject, body);
             });
 
-            res.status(200).json({ msg: "success" });
-
-        }catch (error) {
+            res.status(200).json({
+                msg: "success",
+                document_number: nextSendDocumentNumber,
+            });
+        } catch (error) {
             res.status(500).json({ msg: error.message });
         }
-    }
+    },
 };
 
 module.exports = { ...methods };
