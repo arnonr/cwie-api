@@ -174,6 +174,7 @@ const selectField = {
     workplace_sub_district_detail: {},
     workplace_googlemap_url: true,
     workplace_googlemap_file: true,
+    plan_document_file: true,
     plan_send_at: true,
     plan_accept_at: true,
     advisor_verified_at: true,
