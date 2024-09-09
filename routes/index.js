@@ -32,8 +32,8 @@ const loginLog = require("./api/login-log");
 
 router.use(
     // `${process.env.SUB_URL}/api/v${process.env.API_VERSION}`,
-    `/cwie-api/api/v${process.env.API_VERSION}`,
-    // `/api/v${process.env.API_VERSION}`,
+    // `/cwie-api/api/v${process.env.API_VERSION}`,
+    `/cwie-api/api/v1`,
     router.use("/auth", auth),
     router.use("/user", user),
     router.use("/campus", campus),
